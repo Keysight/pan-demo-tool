@@ -566,7 +566,7 @@ module "panfw" {
     }
     aws_stack_name = var.aws_stack_name
     aws_owner = var.aws_owner
-    # aws_auth_key = var.aws_auth_key
+    aws_auth_key = var.aws_auth_key
     aws_panfw_machine_type = var.aws_panfw_machine_type
 }
 ##### Output ######
