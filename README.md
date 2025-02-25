@@ -29,7 +29,11 @@ A python script 'cyperf_e2e.py' will deploy entire topology and retrun CyPerf co
 ```
 python3 cyperf_e2e.py
 ```
+# Destroy the setup
 
+```
+terraform -chdir=./terraform destroy -auto-approve
+```
 
 
 
