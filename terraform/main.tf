@@ -9,8 +9,10 @@ locals{
     firewall_cidr = concat(var.aws_allowed_cidr,[var.aws_main_cidr])
     options_tag             = "MANUAL"
     project_tag             = "CyPerf"
-    cli_agent_tag               = "clientagent"
-    srv_agent_tag               = "serveragent"
+    cli_agent_tag           = "clientagent-awsfw"
+    srv_agent_tag           = "serveragent-awsfw"
+    cli_agent_tag_pan       = "clientagent-panfw"
+    srv_agent_tag_pan       = "serveragent-panfw"
     agent_init_cli = <<-EOF
         #! /bin/bash
         sudo sudo chmod 777 /var/log/
@@ -425,7 +427,7 @@ module "clientagents" {
         project_tag = local.project_tag,
         aws_owner   = var.aws_owner,
         options_tag = local.options_tag,
-        cli_agent_tag = local.cli_agent_tag
+        agenttype = local.cli_agent_tag
     }
     aws_stack_name = var.aws_stack_name
     # aws_auth_key   = var.aws_auth_key
@@ -448,7 +450,7 @@ module "serveragents" {
         project_tag = local.project_tag,
         aws_owner   = var.aws_owner,
         options_tag = local.options_tag,
-        srv_agent_tag = local.srv_agent_tag
+        agenttype = local.srv_agent_tag
     }
     aws_stack_name = var.aws_stack_name
     # aws_auth_key   = var.aws_auth_key
@@ -472,7 +474,7 @@ module "clientagents-pan" {
         project_tag = local.project_tag,
         aws_owner   = var.aws_owner,
         options_tag = local.options_tag,
-        cli_agent_tag = local.cli_agent_tag
+        agenttype = local.cli_agent_tag_pan
     }
     aws_stack_name = var.aws_stack_name
     # aws_auth_key   = var.aws_auth_key
@@ -495,7 +497,7 @@ module "serveragents-pan" {
         project_tag = local.project_tag,
         aws_owner   = var.aws_owner,
         options_tag = local.options_tag,
-        srv_agent_tag = local.srv_agent_tag
+        agenttype = local.srv_agent_tag_pan
     }
     aws_stack_name = var.aws_stack_name
     # aws_auth_key   = var.aws_auth_key
@@ -515,7 +517,7 @@ resource "aws_networkfirewall_firewall" "aws-ngfw" {
 }
 
 resource "aws_networkfirewall_firewall_policy" "aws-ngfw" {
-  name = "aws-ngfw-firewall-policy"
+  name = "${var.aws_stack_name}-aws-ngfw-firewall-policy"
   firewall_policy {
       stateful_rule_group_reference {
         resource_arn = aws_networkfirewall_rule_group.aws-ngfw.arn
@@ -527,7 +529,7 @@ resource "aws_networkfirewall_firewall_policy" "aws-ngfw" {
 
 resource "aws_networkfirewall_rule_group" "aws-ngfw" {
   capacity = 100
-  name     = "aws-ngfw-rule-group"
+  name     = "${var.aws_stack_name}-aws-ngfw-rule-group"
   type     = "STATEFUL"
   rule_group {
     rules_source {
@@ -570,6 +572,12 @@ module "panfw" {
     aws_panfw_machine_type = var.aws_panfw_machine_type
 }
 ##### Output ######
+
+output "license_server" {
+  value = var.aws_license_server
+}
+
+
 output "mdw_detail"{
   value = {
     "name" : module.mdw.mdw_detail.name,
@@ -578,14 +586,27 @@ output "mdw_detail"{
   }
 }
 
-output "client_agent_detail"{
+output "awsfw_client_agent_detail"{
   value = [for x in module.clientagents :   {
     "name" : x.agents_detail.name,
     "private_ip" : x.agents_detail.private_ip
   }]
 }
-  output "server_agent_detail"{
+  output "awsfw_server_agent_detail"{
   value = [for x in module.serveragents :   {
+    "name" : x.agents_detail.name,
+    "private_ip" : x.agents_detail.private_ip
+  }]
+}
+
+output "panfw_client_agent_detail"{
+  value = [for x in module.clientagents-pan :   {
+    "name" : x.agents_detail.name,
+    "private_ip" : x.agents_detail.private_ip
+  }]
+}
+  output "panfw_server_agent_detail"{
+  value = [for x in module.serveragents-pan :   {
     "name" : x.agents_detail.name,
     "private_ip" : x.agents_detail.private_ip
   }]

@@ -150,3 +150,9 @@ variable "panfw_bootstrap_bucket" {
   default     = ""
   description = "Bucket name for pan firewall bootstrap configuration"
 }
+
+variable "aws_license_server" {
+  type = string
+  default = ""
+  description = "AWS cyperf controller license server"
+}
