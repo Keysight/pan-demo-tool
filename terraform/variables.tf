@@ -62,11 +62,16 @@ variable "aws_session_token" {
   description = "AWS-cli session token"
 }
 
-
 variable "aws_secret_access_key" {
   type = string
   default = "xxxxxxxxxxx"
   description = "AWS-cli secret key"
+}
+
+variable "aws_auth_key" {
+  type = string
+  default = "secret key"
+  description = "The key used to ssh into VMs"
 }
 
 variable "aws_stack_name" {

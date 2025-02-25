@@ -17,7 +17,7 @@ resource "aws_network_interface" "aws_panfw_cli_interface" {
         Owner = var.aws_owner
         Name = "${var.aws_stack_name}-panfw-cli-interface"
     }
-    source_dest_check = true
+    source_dest_check = false
     subnet_id = var.resource_group.client_subnet
     security_groups = [var.resource_group.security_group]
 }
@@ -27,7 +27,7 @@ resource "aws_network_interface" "aws_panfw_srv_interface" {
         Owner = var.aws_owner
         Name = "${var.aws_stack_name}-panfw-srv-interface"
     }
-    source_dest_check = true
+    source_dest_check = false
     subnet_id = var.resource_group.server_subnet
     security_groups = [var.resource_group.security_group]
 }
@@ -84,5 +84,5 @@ resource "aws_instance" "aws_panfw" {
         cpu_credits = "unlimited"
     }
 
-    # key_name = var.aws_auth_key
+    key_name = var.aws_auth_key
 }

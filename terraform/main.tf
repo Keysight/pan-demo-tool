@@ -252,10 +252,19 @@ resource "aws_security_group" "aws_cyperf_security_group" {
 ####### Firewall Rules #######
 resource "aws_security_group_rule" "aws_cyperf_agent_ingress" {
   type              = "ingress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
-  cidr_blocks       = local.firewall_cidr
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  ipv6_cidr_blocks  = ["::/128"]
+  security_group_id = aws_security_group.aws_agent_security_group.id
+}
+resource "aws_security_group_rule" "aws_cyperf_agent_ingress1" {
+  type              = "ingress"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
   ipv6_cidr_blocks  = ["::/128"]
   security_group_id = aws_security_group.aws_agent_security_group.id
 }
@@ -270,9 +279,9 @@ resource "aws_security_group_rule" "aws_cyperf_agent_egress" {
 }
 resource "aws_security_group_rule" "aws_cyperf_ui_ingress" {
   type              = "ingress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
   cidr_blocks       = local.firewall_cidr
   ipv6_cidr_blocks  = ["::/128"]
   security_group_id = aws_security_group.aws_cyperf_security_group.id
