@@ -23,10 +23,18 @@ def run_terraform():
 output = run_terraform()
 
 # Access specific details from the output
-client_agent_detail = output['client_agent_detail']['value']
-mdw_detail = output['mdw_detail']['value']
-server_agent_detail = output['server_agent_detail']['value']
 
-print("CyPerf Client Agent Detail:", client_agent_detail)
+mdw_detail = output['mdw_detail']['value']
+license_server = output['license_server']['value']
+awsfw_client_agent_detail = output['awsfw_client_agent_detail']['value']
+awsfw_server_agent_detail = output['awsfw_server_agent_detail']['value']
+panfw_client_agent_detail = output['panfw_client_agent_detail']['value']
+panfw_server_agent_detail = output['panfw_server_agent_detail']['value']
+
+
 print("CyPerf Controller Detail:", mdw_detail)
-print("CyPerf Server Agent Detail:", server_agent_detail)
+print("CyPerf License Server Detail:", license_server)
+print("awsfw CyPerf Client Agent Detail:", awsfw_client_agent_detail)
+print("awsfw CyPerf Server Agent Detail:", awsfw_server_agent_detail)
+print("panfw CyPerf Client Agent Detail:", panfw_client_agent_detail)
+print("panfw CyPerf Server Agent Detail:", panfw_server_agent_detail)
