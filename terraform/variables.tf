@@ -74,12 +74,6 @@ variable "aws_owner" {
   description = "Stack name, prefix for all resources"
 }
 
-variable "aws_auth_key" {
-  type = string
-  default = "secret key"
-  description = "The key used to ssh into VMs"
-}
-
 variable "aws_allowed_cidr"{
   type = list(string)
   default = ["0.0.0.0/0"]

@@ -392,7 +392,7 @@ module "mdw" {
     }
     aws_stack_name = var.aws_stack_name
     aws_owner = var.aws_owner
-    aws_auth_key = var.aws_auth_key
+    # aws_auth_key = var.aws_auth_key
     aws_mdw_machine_type = var.aws_mdw_machine_type
 }
 
@@ -414,7 +414,7 @@ module "clientagents" {
         cli_agent_tag = local.cli_agent_tag
     }
     aws_stack_name = var.aws_stack_name
-    aws_auth_key   = var.aws_auth_key
+    # aws_auth_key   = var.aws_auth_key
     aws_agent_machine_type = var.aws_agent_machine_type
     agent_role = "client-awsfw"
     agent_init_cli = local.agent_init_cli
@@ -437,7 +437,7 @@ module "serveragents" {
         srv_agent_tag = local.srv_agent_tag
     }
     aws_stack_name = var.aws_stack_name
-    aws_auth_key   = var.aws_auth_key
+    # aws_auth_key   = var.aws_auth_key
     aws_agent_machine_type = var.aws_agent_machine_type
     agent_role = "server-awsfw"
     agent_init_cli = local.agent_init_cli
@@ -461,7 +461,7 @@ module "clientagents-pan" {
         cli_agent_tag = local.cli_agent_tag
     }
     aws_stack_name = var.aws_stack_name
-    aws_auth_key   = var.aws_auth_key
+    # aws_auth_key   = var.aws_auth_key
     aws_agent_machine_type = var.aws_agent_machine_type
     agent_role = "client-panfw"
     agent_init_cli = local.agent_init_cli
@@ -484,7 +484,7 @@ module "serveragents-pan" {
         srv_agent_tag = local.srv_agent_tag
     }
     aws_stack_name = var.aws_stack_name
-    aws_auth_key   = var.aws_auth_key
+    # aws_auth_key   = var.aws_auth_key
     aws_agent_machine_type = var.aws_agent_machine_type
     agent_role = "server-panfw"
     agent_init_cli = local.agent_init_cli
@@ -552,7 +552,7 @@ module "panfw" {
     }
     aws_stack_name = var.aws_stack_name
     aws_owner = var.aws_owner
-    aws_auth_key = var.aws_auth_key
+    # aws_auth_key = var.aws_auth_key
     aws_panfw_machine_type = var.aws_panfw_machine_type
 }
 ##### Output ######
