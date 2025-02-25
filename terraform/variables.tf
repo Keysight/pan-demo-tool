@@ -50,13 +50,13 @@ variable "aws_firewall_cidr" {
   description = "AWS firewall subnet"
 }
 
-variable "aws_access_key" {
+variable "aws_access_key_id" {
   type = string
   default = "xxxxxxxxxxxx"
   description = "AWS-cli access key"
 }
 
-variable "aws_secret_key" {
+variable "aws_secret_access_key" {
   type = string
   default = "xxxxxxxxxxx"
   description = "AWS-cli secret key"
