@@ -1,0 +1,6 @@
+aws_stack_name="<stack name eg. cyperftest>"
+aws_region="<AWS region eg. us-west-2>"
+aws_access_key_id="XXXXXXXXXXXXX"
+aws_secret_access_key="XXXXXXXXXXXXXXX"
+aws_session_token="XXXXXXXX"
+panfw_bootstrap_bucket="<s3 bucket where PAN config stored>"

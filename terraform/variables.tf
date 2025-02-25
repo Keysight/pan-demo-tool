@@ -56,6 +56,13 @@ variable "aws_access_key_id" {
   description = "AWS-cli access key"
 }
 
+variable "aws_session_token" {
+  type = string
+  default = "xxxxxxxxxxxx"
+  description = "AWS-cli session token"
+}
+
+
 variable "aws_secret_access_key" {
   type = string
   default = "xxxxxxxxxxx"

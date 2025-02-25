@@ -1,6 +1,7 @@
 provider "aws" {
   access_key = var.aws_access_key_id
   secret_key = var.aws_secret_access_key
+  token = var.aws_session_token
   region = var.aws_region
 }
 
@@ -361,7 +362,11 @@ data "aws_iam_policy_document" "bootstrap-assume-role-policy" {
 }
 data "aws_iam_policy_document" "bootstrap_inline_policy" {
   statement {
-    actions   = ["s3:ListBucket", "s3:GetObject"]
+    actions   = ["s3:ListBucket"]
+    resources = ["arn:aws:s3:::${var.panfw_bootstrap_bucket}"]
+  }
+  statement {
+    actions   = ["s3:GetObject"]
     resources = ["arn:aws:s3:::${var.panfw_bootstrap_bucket}/*"]
   }
 }
