@@ -19,11 +19,6 @@ variable "aws_owner" {
   description = "Stack name, prefix for all resources"
 }
 
-variable "aws_auth_key" {
-  type = string
-  description = "The key used to ssh into VMs"
-}
-
 variable "aws_panfw_machine_type"{
   type = string
   description = "PANFW instance type"

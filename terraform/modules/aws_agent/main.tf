@@ -69,5 +69,5 @@ resource "aws_instance" "aws_cli_agent" {
     }
     user_data = var.agent_init_cli
 
-    key_name = var.aws_auth_key
+    # key_name = var.aws_auth_key
 }

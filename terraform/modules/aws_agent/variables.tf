@@ -22,11 +22,6 @@ variable "aws_stack_name" {
   description = "Stack name, prefix for all resources"
 }
 
-variable "aws_auth_key" {
-  type = string
-  description = "The key used to ssh into VMs"
-}
-
 variable "aws_agent_machine_type" {
   type = string
   description = "Agent machines instance type"
