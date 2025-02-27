@@ -390,6 +390,7 @@ def main():
 
     # Access specific details from the output
     mdw_detail = output['mdw_detail']['value']
+    panfw_detail = output['panfw_detail']['value']
     license_server = output['license_server']['value']
     awsfw_client_agent_detail = output['awsfw_client_agent_detail']['value']
     awsfw_server_agent_detail = output['awsfw_server_agent_detail']['value']
@@ -398,6 +399,7 @@ def main():
 
 
     print("CyPerf Controller Detail:", mdw_detail)
+    print("panfw Detail:", panfw_detail)
     print("CyPerf License Server Detail:", license_server)
     print("awsfw CyPerf Client Agent Detail:", awsfw_client_agent_detail)
     print("awsfw CyPerf Server Agent Detail:", awsfw_server_agent_detail)

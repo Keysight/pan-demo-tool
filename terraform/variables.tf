@@ -145,12 +145,6 @@ variable "controller_password" {
   description = "Controller's authentication password"
 }
 
-variable "panfw_bootstrap_bucket" {
-  type        = string
-  default     = ""
-  description = "Bucket name for pan firewall bootstrap configuration"
-}
-
 variable "aws_license_server" {
   type = string
   default = ""

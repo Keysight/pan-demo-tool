@@ -18,6 +18,9 @@ locals{
         sudo sudo chmod 777 /var/log/
         sudo sh /opt/keysight/tiger/active/bin/Appsec_init ${module.mdw.mdw_detail.private_ip} --username "${var.controller_username}" --password "${var.controller_password}">> /var/log/Appsec_init.log
     EOF
+    panfw_init_cli = <<-EOF
+        vmseries-bootstrap-aws-s3bucket=${aws_s3_bucket.pan_config_bucket.bucket}
+    EOF
 }
 
 resource "aws_vpc" "aws_main_vpc" {
@@ -189,7 +192,7 @@ resource "aws_route" "aws_route_to_ngfw" {
       aws_route_table_association.aws_srv_test_rt_association
     ]
     route_table_id            = aws_route_table.aws_private_rt.id
-    destination_cidr_block    = "172.16.4.0/24"
+    destination_cidr_block    = var.aws_srv_test_cidr
     vpc_endpoint_id = element([for ss in tolist(aws_networkfirewall_firewall.aws-ngfw.firewall_status[0].sync_states) : ss.attachment[0].endpoint_id if ss.attachment[0].subnet_id == aws_subnet.aws_firewall_subnet.id], 0)
 }
 
@@ -199,7 +202,7 @@ resource "aws_route" "aws_route_to_ngfw1" {
       aws_route_table_association.aws_srv_test_rt_association
     ]
     route_table_id            = aws_route_table.aws_private_rt_srv.id
-    destination_cidr_block    = "172.16.3.0/24"
+    destination_cidr_block    = var.aws_cli_test_cidr
     vpc_endpoint_id = element([for ss in tolist(aws_networkfirewall_firewall.aws-ngfw.firewall_status[0].sync_states) : ss.attachment[0].endpoint_id if ss.attachment[0].subnet_id == aws_subnet.aws_firewall_subnet.id], 0)
 }
 
@@ -208,7 +211,7 @@ resource "aws_route" "aws_route_igw_to_agent1" {
       aws_route_table_association.aws_igw_rt_association
     ]
     route_table_id            = aws_route_table.aws_igw_rt.id
-    destination_cidr_block    = "172.16.3.0/24"
+    destination_cidr_block    = var.aws_cli_test_cidr
     vpc_endpoint_id = element([for ss in tolist(aws_networkfirewall_firewall.aws-ngfw.firewall_status[0].sync_states) : ss.attachment[0].endpoint_id if ss.attachment[0].subnet_id == aws_subnet.aws_firewall_subnet.id], 0)
 }
 
@@ -217,7 +220,7 @@ resource "aws_route" "aws_route_igw_to_agent2" {
       aws_route_table_association.aws_igw_rt_association
     ]
     route_table_id            = aws_route_table.aws_igw_rt.id
-    destination_cidr_block    = "172.16.4.0/24"
+    destination_cidr_block    = var.aws_srv_test_cidr
     vpc_endpoint_id = element([for ss in tolist(aws_networkfirewall_firewall.aws-ngfw.firewall_status[0].sync_states) : ss.attachment[0].endpoint_id if ss.attachment[0].subnet_id == aws_subnet.aws_firewall_subnet.id], 0)
 }
 
@@ -359,6 +362,24 @@ resource "aws_placement_group" "aws_placement_group" {
     strategy = "cluster"
 }
 
+##### create s3 bucket #####
+
+resource "aws_s3_bucket" "pan_config_bucket" {
+  bucket = "${var.aws_stack_name}-panfw-bootstrap"
+}
+
+resource "aws_s3_object" "pan_config_file" {
+  bucket = aws_s3_bucket.pan_config_bucket.bucket
+  key    = "config/bootstrap.xml"
+  source = "pan_config/bootstrap.xml"
+}
+
+resource "aws_s3_object" "pan_config_file1" {
+  bucket = aws_s3_bucket.pan_config_bucket.bucket
+  key    = "config/init-cfg.txt"
+  source = "pan_config/init-cfg.txt"
+}
+
 ######## pan fw Bootstrap role panrofile #######
 
 data "aws_iam_policy_document" "bootstrap-assume-role-policy" {
@@ -374,11 +395,12 @@ data "aws_iam_policy_document" "bootstrap-assume-role-policy" {
 data "aws_iam_policy_document" "bootstrap_inline_policy" {
   statement {
     actions   = ["s3:ListBucket"]
-    resources = ["arn:aws:s3:::${var.panfw_bootstrap_bucket}"]
+    resources = [aws_s3_bucket.pan_config_bucket.arn]
+    
   }
   statement {
     actions   = ["s3:GetObject"]
-    resources = ["arn:aws:s3:::${var.panfw_bootstrap_bucket}/*"]
+    resources = ["${aws_s3_bucket.pan_config_bucket.arn}/*"]
   }
 }
 resource "aws_iam_role" "bootstrap_iam_role" {
@@ -536,11 +558,11 @@ resource "aws_networkfirewall_rule_group" "aws-ngfw" {
       stateful_rule {
         action = "PASS"
         header {
-          destination      = "172.16.4.0/24"
+          destination      = var.aws_srv_test_cidr
           destination_port = "ANY"
           direction        = "FORWARD"
           protocol         = "TCP"
-          source           = "172.16.3.0/24"
+          source           = var.aws_cli_test_cidr
           source_port      = "ANY"
         }
         rule_option {
@@ -570,7 +592,9 @@ module "panfw" {
     aws_owner = var.aws_owner
     aws_auth_key = var.aws_auth_key
     aws_panfw_machine_type = var.aws_panfw_machine_type
+    panfw_init_cli = local.panfw_init_cli
 }
+
 ##### Output ######
 
 output "license_server" {
@@ -583,6 +607,14 @@ output "mdw_detail"{
     "name" : module.mdw.mdw_detail.name,
     "public_ip" : module.mdw.mdw_detail.public_ip,
     "private_ip" : module.mdw.mdw_detail.private_ip
+  }
+}
+
+output "panfw_detail"{
+  value = {
+    "name" : module.panfw.panfw_detail.name,
+    "public_ip" : module.panfw.panfw_detail.public_ip,
+    "private_ip" : module.panfw.panfw_detail.private_ip
   }
 }
 

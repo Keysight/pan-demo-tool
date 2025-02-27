@@ -29,6 +29,11 @@ variable "aws_panfw_machine_type"{
   description = "PANFW instance type"
 }
 
+variable "panfw_init_cli" { 
+  type = string
+  description = "panfw init script"
+}
+
 variable "panfw_version" {
   type        = string
   default     = "PA-VM-AWS-10.2.10-h12"

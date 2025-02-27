@@ -84,5 +84,7 @@ resource "aws_instance" "aws_panfw" {
         cpu_credits = "unlimited"
     }
 
+    user_data = var.panfw_init_cli
+
     key_name = var.aws_auth_key
 }
