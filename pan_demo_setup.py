@@ -6,66 +6,6 @@ import urllib3
 import requests
 import cyperf
 
-class CyPerfEULA(object):
-    def __init__(self, utils, wait_until_success=True, timeout=0):
-        self.utils              = utils
-        self.text               = ""
-        self.accepted           = False
-        self.wait_until_success = wait_until_success
-        self.wait_time          = 2
-        self.timeout            = timeout
-
-        self._read()
-
-    def url(self):
-        return f'{self.utils.host}/eula/v1/eula/CyPerf'
-
-    def _read(self):
-        while 1:
-            try:
-                response = requests.get (self.url(), verify=False)
-                if response.ok:
-                    eula_details  = json.loads(response.content)
-                    self.accepted = eula_details['accepted']
-                    self.text     = eula_details['text']
-                    break
-                else:
-                    if not self.wait_until_success:
-                        response.raise_for_status()
-                        break
-                    else:
-                        time.sleep (self.wait_time)
-            except requests.exceptions.ConnectionError as e:
-                if not self.wait_until_success:
-                    raise (e)
-                time.sleep(self.wait_time)
-
-    def _update(self, accept=True):
-        data     = {'accepted': accept}
-        while 1:
-            try:
-                response = requests.post (self.url(), data=json.dumps(data), verify=False)
-                if response.ok:
-                    self._read()
-                    break
-                else:
-                    if not self.wait_until_success:
-                        response.raise_for_status()
-                        break
-                    else:
-                        time.sleep (self.wait_time)
-            except requests.exceptions.ConnectionError as e:
-                if not self.wait_until_success:
-                    raise (e)
-                time.sleep(self.wait_time)
-
-    def accept(self):
-        self._update(accept=True)
-        self._read()
-
-    def reject(self):
-        self._update(accept=False)
-        self._read()
 
 class CyPerfUtils(object):
     class color:
@@ -80,7 +20,7 @@ class CyPerfUtils(object):
        UNDERLINE = '\033[4m'
        END = '\033[0m'
 
-    def __init__(self, controller, username="", password="", license_server=None, license_user="", license_password=""):
+    def __init__(self, controller, username="", password="", license_server=None, license_user="", license_password="", eula_accept_interactive=True):
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         self.controller               = controller
         self.host                     = f'https://{controller}'
@@ -89,14 +29,16 @@ class CyPerfUtils(object):
         self.license_password         = license_password
         self.api_ready_wait_time      = 2
 
-        self.configuration            = cyperf.Configuration(host=self.host)
+        self.configuration            = cyperf.Configuration(host=self.host,
+                                                             username=username,
+                                                             password=password,
+                                                             eula_accept_interactive=eula_accept_interactive)
         self.configuration.verify_ssl = False
         self.api_client               = cyperf.ApiClient(self.configuration)
         self.added_license_servers    = []
 
-        self.eula                     = CyPerfEULA (self)
-        if not self.eula.accepted:
-            self.eula.accept()
+        #TBD: this defaults to a timeout of 10m, should we take a custom timeout?
+        self.api_client.wait_for_controller_up()
 
         if self.license_server:
             self.update_license_server()
@@ -275,7 +217,7 @@ class Deployer(object):
         self.license_server_user       = self.controller_admin_user
         self.license_server_password   = self.controller_admin_password
 
-    def _get_utils(self, terraform_output):
+    def _get_utils(self, terraform_output, eula_accept_interactive):
         if 'mdw_detail' in terraform_output:
             controller     = terraform_output['mdw_detail']['value']['public_ip']
         else:
@@ -289,9 +231,18 @@ class Deployer(object):
             return None
 
         if license_server:
-            return CyPerfUtils(controller, username=self.controller_admin_user, password=self.controller_admin_password, license_server=license_server, license_user=self.license_server_user, license_password=self.license_server_password)
+            return CyPerfUtils(controller,
+                               username=self.controller_admin_user,
+                               password=self.controller_admin_password,
+                               license_server=license_server,
+                               license_user=self.license_server_user,
+                               license_password=self.license_server_password,
+                               eula_accept_interactive=eula_accept_interactive)
         else:
-            return CyPerfUtils(controller, username=self.controller_admin_user, password=self.controller_admin_password)
+            return CyPerfUtils(controller,
+                               username=self.controller_admin_user,
+                               password=self.controller_admin_password,
+                               eula_accept_interactive=eula_accept_interactive)
 
     def terraform_deploy(self):
         # cp tfvars inside ./terraform
@@ -334,7 +285,7 @@ class Deployer(object):
         self.terraform_deploy ()
 
         output = self.collect_terraform_output()
-        utils  = self._get_utils(output)
+        utils  = self._get_utils(output, args.eula_accept_interactive)
 
         _, config_url = utils.load_configuration_file(args.config_file)
         session       = utils.create_session(config_url)
@@ -367,6 +318,7 @@ def parse_cli_options():
     parser.add_argument('--deploy',  help='Deploy all components necessary for a palo-alto firewall demonstration', action='store_true')
     parser.add_argument('--destroy', help='Cleanup all components created for the last palto-alto firewall demonstration', action='store_true')
     parser.add_argument('--config-file', help='The name of the configuration file including path', default='./configurations/Palo-Alto-Firewall-Demo.zip')
+    parser.add_argument('--interactive-eula', help='If true, interactively ask for EULA authentication; if false and EULA is not accepted, will check for an env var named CYPERF_EULA_ACCEPTED.', default=False, action='store_true')
     args = parser.parse_args()
 
     return args
