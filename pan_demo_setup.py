@@ -68,8 +68,6 @@ class CyPerfEULA(object):
         self._read()
 
 class CyPerfUtils(object):
-    WAP_CLIENT_ID = 'clt-wap'
-
     class color:
        PURPLE = '\033[95m'
        CYAN = '\033[96m'
@@ -86,8 +84,6 @@ class CyPerfUtils(object):
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         self.controller               = controller
         self.host                     = f'https://{controller}'
-        self.username                 = username
-        self.password                 = password
         self.license_server           = license_server
         self.license_user             = license_user
         self.license_password         = license_password
@@ -102,7 +98,6 @@ class CyPerfUtils(object):
         if not self.eula.accepted:
             self.eula.accept()
 
-        self.authorize()
         if self.license_server:
             self.update_license_server()
 
@@ -118,18 +113,6 @@ class CyPerfUtils(object):
                 return func()
             except cyperf.exceptions.ServiceException as e:
                 time.sleep(self.api_ready_wait_time)
-
-    def _authorize(self):
-        auth_api   = cyperf.AuthorizationApi(self.api_client)
-        grant_type = "password"
-        try:
-            response = auth_api.auth_realms_keysight_protocol_openid_connect_token_post(client_id=CyPerfUtils.WAP_CLIENT_ID,
-                                                                                        grant_type=grant_type,
-                                                                                        password=self.password,
-                                                                                        username=self.username)
-            self.configuration.access_token = response.access_token
-        except cyperf.ApiException as e:
-            raise (e)
 
     def _update_license_server(self):
         if not self.license_server or self.license_server == self.controller:
@@ -176,9 +159,6 @@ class CyPerfUtils(object):
                 license_api.delete_license_servers(str(server.id))
             except cyperf.ApiException as e:
                 print(f'{e}')
-
-    def authorize(self):
-        self._call_api(self._authorize)
 
     def update_license_server(self):
         self._call_api(self._update_license_server)
