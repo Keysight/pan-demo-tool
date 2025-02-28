@@ -3,6 +3,7 @@ import time
 import subprocess
 import json
 import urllib3
+import requests
 import cyperf
 
 class CyPerfEULA(object):
@@ -20,9 +21,6 @@ class CyPerfEULA(object):
         return f'{self.utils.host}/eula/v1/eula/CyPerf'
 
     def _read(self):
-        import requests
-        import json
-
         while 1:
             try:
                 response = requests.get (self.url(), verify=False)
@@ -43,9 +41,6 @@ class CyPerfEULA(object):
                 time.sleep(self.wait_time)
 
     def _update(self, accept=True):
-        import requests
-        import json
-
         data     = {'accepted': accept}
         while 1:
             try:
@@ -74,6 +69,18 @@ class CyPerfEULA(object):
 
 class CyPerfUtils(object):
     WAP_CLIENT_ID = 'clt-wap'
+
+    class color:
+       PURPLE = '\033[95m'
+       CYAN = '\033[96m'
+       DARKCYAN = '\033[36m'
+       BLUE = '\033[94m'
+       GREEN = '\033[92m'
+       YELLOW = '\033[93m'
+       RED = '\033[91m'
+       BOLD = '\033[1m'
+       UNDERLINE = '\033[4m'
+       END = '\033[0m'
 
     def __init__(self, controller, username="", password="", license_server=None, license_user="", license_password=""):
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -105,15 +112,11 @@ class CyPerfUtils(object):
         for agent in agents:
             self.agents[agent.ip] = agent
 
-    def __del__(self):
-        self.remove_license_server()
-
     def _call_api(self, func):
         while 1:
             try:
                 return func()
             except cyperf.exceptions.ServiceException as e:
-                print(e)
                 time.sleep(self.api_ready_wait_time)
 
     def _authorize(self):
@@ -123,10 +126,8 @@ class CyPerfUtils(object):
             response = auth_api.auth_realms_keysight_protocol_openid_connect_token_post(client_id=CyPerfUtils.WAP_CLIENT_ID,
                                                                                         grant_type=grant_type,
                                                                                         password=self.password,
-                                                                                        username=self.username,
-                                                                                        refresh_token='')
-            print(f'{response.access_token=}')
-            return response.access_token
+                                                                                        username=self.username)
+            self.configuration.access_token = response.access_token
         except cyperf.ApiException as e:
             raise (e)
 
@@ -136,12 +137,13 @@ class CyPerfUtils(object):
         license_api = cyperf.LicenseServersApi(self.api_client)
         try:
             response = license_api.get_license_servers()
-            for lServerMetaData in response:
-                if lServerMetaData.host_name == self.license_server:
-                    if 'ESTABLISHED' == lServerMetaData.connection_status:
+            for server in response:
+                if server.host_name == self.license_server:
+                    if 'ESTABLISHED' == server.connection_status:
+                        self.added_license_servers.append(server)
                         print(f'License server {self.license_server} is already configured')
                         return
-                    license_api.delete_license_servers(str(lServerMetaData.id))
+                    license_api.delete_license_servers(str(server.id))
                     waitTime = 5 # seconds
                     print (f'Waiting for {waitTime} seconds for the license server deletion to finish.')
                     time.sleep(waitTime) # How can I avoid this sleep????
@@ -155,8 +157,7 @@ class CyPerfUtils(object):
             newServers = license_api.create_license_servers(license_server_metadata=[lServer])
             while newServers:
                 for server in newServers:
-                    s = license_api.get_license_servers_by_id(
-                        str(server.id))
+                    s = license_api.get_license_servers_by_id(str(server.id))
                     if 'IN_PROGRESS' != s.connection_status:
                         newServers.remove(server)
                         self.added_license_servers.append(server)
@@ -174,7 +175,7 @@ class CyPerfUtils(object):
             try:
                 license_api.delete_license_servers(str(server.id))
             except cyperf.ApiException as e:
-                pprint(f'{e}')
+                print(f'{e}')
 
     def authorize(self):
         self._call_api(self._authorize)
@@ -215,13 +216,18 @@ class CyPerfUtils(object):
     def remove_configuration(self, configurations_id):
         self.remove_configurations([configurations_id])
 
+    def delete_all_configs (self):
+        config_api = cyperf.ConfigurationsApi(self.api_client)
+        configs    = config_api.get_configs()
+        self.remove_configurations([config.id for config in configs if not config.readonly])
+
     def create_session_by_config_name (self, configName):
-        configsApiInstance  = cyperf.ConfigurationsApi(self.api_client)
-        appMixConfigs       = configsApiInstance.get_configs(search_col='displayName', search_val='CyPerf AppMix')
-        if not len(appMixConfigs):
+        config_api = cyperf.ConfigurationsApi(self.api_client)
+        configs    = config_api.get_configs(search_col='displayName', search_val=configName)
+        if not len(configs):
             return None
 
-        return self.create_session (appMixConfigs[0].config_url)
+        return self.create_session (configs[0].config_url)
 
     def create_session (self, config_url):
         session_api        = cyperf.SessionsApi(self.api_client)
@@ -251,7 +257,8 @@ class CyPerfUtils(object):
     def delete_all_sessions (self):
         session_api = cyperf.SessionsApi(self.api_client)
         result      = session_api.get_sessions()
-        # [PARTHA] TODO
+        for session in result:
+            self.delete_session(session)
 
     def assign_agents (self, session, agent_map, augment=False):
         # Assing agents to the indivual network segments based on the input provided
@@ -301,7 +308,6 @@ class Deployer(object):
         if not controller:
             return None
 
-        print(f'{controller=}')
         if license_server:
             return CyPerfUtils(controller, username=self.controller_admin_user, password=self.controller_admin_password, license_server=license_server, license_user=self.license_server_user, license_password=self.license_server_password)
         else:
@@ -344,24 +350,33 @@ class Deployer(object):
         subprocess.run(['rm', '-rf', f'{self.terraform_dir}/.terraform/'], check=True)
         subprocess.run(['rm', '-f',  f'terraform.tfstate'], check=True)
 
-    def deploy(self):
+    def deploy(self, args):
         self.terraform_deploy ()
 
         output = self.collect_terraform_output()
         utils  = self._get_utils(output)
 
-        agents = {
-            'PAN-VM-FW-Client': [output['panfw_client_agent_detail']['value']],
-            'AWS-NW-FW-Client': [output['awsfw_client_agent_detail']['value']],
-            'PAN-VM-FW-Server': [output['panfw_server_agent_detail']['value']],
-            'AWS-NW-FW-Server': [output['awsfw_server_agent_detail']['value']]
-        }
+        _, config_url = utils.load_configuration_file(args.config_file)
+        session       = utils.create_session(config_url)
 
-    def destroy(self):
+        agents = {
+            'PAN-VM-FW-Client': [agent['private_ip'] for agent in output['panfw_client_agent_detail']['value']],
+            'AWS-NW-FW-Client': [agent['private_ip'] for agent in output['awsfw_client_agent_detail']['value']],
+            'PAN-VM-FW-Server': [agent['private_ip'] for agent in output['panfw_server_agent_detail']['value']],
+            'AWS-NW-FW-Server': [agent['private_ip'] for agent in output['awsfw_server_agent_detail']['value']]
+        }
+        utils.assign_agents (session, agents)
+
+        url_string = utils.color.UNDERLINE + utils.color.BLUE + f'https://{utils.controller}' + utils.color.END
+        print(f'\nCyPerf controller is at: {url_string}')
+
+    def destroy(self, args):
         output = self.collect_terraform_output()
-        if 'license_server' in output:
-            output['license_server']['value'] = None
         utils  = self._get_utils(output)
+        if utils:
+            utils.delete_all_sessions()
+            utils.delete_all_configs()
+            utils.remove_license_server()
 
         self.terraform_destroy ()
 
@@ -371,6 +386,7 @@ def parse_cli_options():
     parser = argparse.ArgumentParser(description='Deploy a test topology for demonstrating palo-alto firewalls.')
     parser.add_argument('--deploy',  help='Deploy all components necessary for a palo-alto firewall demonstration', action='store_true')
     parser.add_argument('--destroy', help='Cleanup all components created for the last palto-alto firewall demonstration', action='store_true')
+    parser.add_argument('--config-file', help='The name of the configuration file including path', default='./configurations/Palo-Alto-Firewall-Demo.zip')
     args = parser.parse_args()
 
     return args
@@ -380,32 +396,10 @@ def main():
     deployer = Deployer()
 
     if args.deploy:
-        deployer.deploy()
+        deployer.deploy(args)
 
     if args.destroy:
-        deployer.destroy()
-    '''
-    # Run the function and store the output
-    output = terraform_deploy()
-
-    # Access specific details from the output
-    mdw_detail = output['mdw_detail']['value']
-    panfw_detail = output['panfw_detail']['value']
-    license_server = output['license_server']['value']
-    awsfw_client_agent_detail = output['awsfw_client_agent_detail']['value']
-    awsfw_server_agent_detail = output['awsfw_server_agent_detail']['value']
-    panfw_client_agent_detail = output['panfw_client_agent_detail']['value']
-    panfw_server_agent_detail = output['panfw_server_agent_detail']['value']
-
-
-    print("CyPerf Controller Detail:", mdw_detail)
-    print("panfw Detail:", panfw_detail)
-    print("CyPerf License Server Detail:", license_server)
-    print("awsfw CyPerf Client Agent Detail:", awsfw_client_agent_detail)
-    print("awsfw CyPerf Server Agent Detail:", awsfw_server_agent_detail)
-    print("panfw CyPerf Client Agent Detail:", panfw_client_agent_detail)
-    print("panfw CyPerf Server Agent Detail:", panfw_server_agent_detail)
-    '''
+        deployer.destroy(args)
 
 if __name__ == "__main__":
     main()
