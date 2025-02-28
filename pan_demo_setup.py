@@ -182,6 +182,15 @@ class CyPerfUtils(object):
         for session in result:
             self.delete_session(session)
 
+    def set_gateway (self, session, network_name, gateway_ip):
+        for net_profile in session.config.config.network_profiles:
+            for ip_net in net_profile.ip_network_segment:
+                if ip_net.name == network_name:
+                    for ip_range in ip_net.ip_ranges:
+                        ip_range.gw_start = gateway_ip
+                        ip_range.gw_start = gateway_ip
+                        ip_range.update()
+
     def assign_agents (self, session, agent_map, augment=False):
         # Assing agents to the indivual network segments based on the input provided
         for net_profile in session.config.config.network_profiles:
@@ -197,7 +206,7 @@ class CyPerfUtils(object):
                     else:
                         ip_net.agent_assignments.by_id = agent_details
 
-                    ip_net.update()
+                    ip_net.agent_assignments.update()
 
     def stop_test (self, session):
         test_ops_api = cyperf.TestOperationsApi(self.api_client)
@@ -217,7 +226,7 @@ class Deployer(object):
         self.license_server_user       = self.controller_admin_user
         self.license_server_password   = self.controller_admin_password
 
-    def _get_utils(self, terraform_output, eula_accept_interactive):
+    def _get_utils(self, terraform_output, eula_accept_interactive=True):
         if 'mdw_detail' in terraform_output:
             controller     = terraform_output['mdw_detail']['value']['public_ip']
         else:
@@ -285,11 +294,17 @@ class Deployer(object):
         self.terraform_deploy ()
 
         output = self.collect_terraform_output()
-        utils  = self._get_utils(output, args.eula_accept_interactive)
+        print(f'{args.automatic_eula_accept=}')
+        utils  = self._get_utils(output, not args.automatic_eula_accept)
 
         _, config_url = utils.load_configuration_file(args.config_file)
         session       = utils.create_session(config_url)
 
+        if 'panfw_detail' in output:
+            pan_fw_ip = output['panfw_detail']['value']['private_ip']
+            print (f'{pan_fw_ip=}')
+        #aws_nw_fw_ip = 
+        utils.set_gateway (session, 'PAN-VM-FW-Client', pan_fw_ip)
         agents = {
             'PAN-VM-FW-Client': [agent['private_ip'] for agent in output['panfw_client_agent_detail']['value']],
             'AWS-NW-FW-Client': [agent['private_ip'] for agent in output['awsfw_client_agent_detail']['value']],
@@ -303,7 +318,7 @@ class Deployer(object):
 
     def destroy(self, args):
         output = self.collect_terraform_output()
-        utils  = self._get_utils(output)
+        utils  = self._get_utils(output, not args.automatic_eula_accept)
         if utils:
             utils.delete_all_sessions()
             utils.delete_all_configs()
@@ -318,7 +333,7 @@ def parse_cli_options():
     parser.add_argument('--deploy',  help='Deploy all components necessary for a palo-alto firewall demonstration', action='store_true')
     parser.add_argument('--destroy', help='Cleanup all components created for the last palto-alto firewall demonstration', action='store_true')
     parser.add_argument('--config-file', help='The name of the configuration file including path', default='./configurations/Palo-Alto-Firewall-Demo.zip')
-    parser.add_argument('--interactive-eula', help='If true, interactively ask for EULA authentication; if false and EULA is not accepted, will check for an env var named CYPERF_EULA_ACCEPTED.', default=False, action='store_true')
+    parser.add_argument('--automatic-eula-accept', help='If true, interactively ask for EULA authentication; if false and EULA is not accepted, will check for an env var named CYPERF_EULA_ACCEPTED.', default=False, action='store_true')
     args = parser.parse_args()
 
     return args
