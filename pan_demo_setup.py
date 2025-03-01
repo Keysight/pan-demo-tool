@@ -290,19 +290,24 @@ class Deployer(object):
         subprocess.run(['rm', '-rf', f'{self.terraform_dir}/.terraform/'], check=True)
         subprocess.run(['rm', '-f',  f'terraform.tfstate'], check=True)
 
+    def _do_accept_eula_interactively(self):
+        if 'CYPERF_EULA_ACCEPTED' in os.environ:
+            if os.environ['CYPERF_EULA_ACCEPTED'] == 'true':
+                return False
+
+        return True
+
     def deploy(self, args):
         self.terraform_deploy ()
 
         output = self.collect_terraform_output()
-        print(f'{args.automatic_eula_accept=}')
-        utils  = self._get_utils(output, not args.automatic_eula_accept)
+        utils  = self._get_utils(output, self._do_accept_eula_interactively())
 
         _, config_url = utils.load_configuration_file(args.config_file)
         session       = utils.create_session(config_url)
 
         if 'panfw_detail' in output:
             pan_fw_ip = output['panfw_detail']['value']['private_ip']
-            print (f'{pan_fw_ip=}')
         #aws_nw_fw_ip = 
         utils.set_gateway (session, 'PAN-VM-FW-Client', pan_fw_ip)
         agents = {
@@ -318,7 +323,7 @@ class Deployer(object):
 
     def destroy(self, args):
         output = self.collect_terraform_output()
-        utils  = self._get_utils(output, not args.automatic_eula_accept)
+        utils  = self._get_utils(output, self._do_accept_eula_interactively())
         if utils:
             utils.delete_all_sessions()
             utils.delete_all_configs()
@@ -329,11 +334,14 @@ class Deployer(object):
 def parse_cli_options():
     import argparse
 
-    parser = argparse.ArgumentParser(description='Deploy a test topology for demonstrating palo-alto firewalls.')
+    parser = argparse.ArgumentParser(description='Deploy a test topology for demonstrating palo-alto firewalls.',
+                                     epilog='''Please set the environment variable CYPERF_EULA_ACCEPTED to \'true\'
+                                               if you accept the CyPerf EULA: https://keysight.com/find/sweula.
+                                               Alternatively you can accept through an interactive prompt.''',
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--deploy',  help='Deploy all components necessary for a palo-alto firewall demonstration', action='store_true')
     parser.add_argument('--destroy', help='Cleanup all components created for the last palto-alto firewall demonstration', action='store_true')
     parser.add_argument('--config-file', help='The name of the configuration file including path', default='./configurations/Palo-Alto-Firewall-Demo.zip')
-    parser.add_argument('--automatic-eula-accept', help='If true, interactively ask for EULA authentication; if false and EULA is not accepted, will check for an env var named CYPERF_EULA_ACCEPTED.', default=False, action='store_true')
     args = parser.parse_args()
 
     return args
