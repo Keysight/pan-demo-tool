@@ -2,14 +2,11 @@
 
 DOCKER_REPO="docker-local-isg.artifactory.it.keysight.com"
 CURRENT_DIR="$(pwd)"
-mkdir -p $CURRENT_DIR/.terraform
-touch $CURRENT_DIR/terraform.tfstate
-touch $CURRENT_DIR/terraform.tfstate.backup
-touch $CURRENT_DIR/terraform.tfvars
+mkdir -p terraform-state/.terraform
+touch terraform-state/terraform.tfstate
+touch terraform-state/terraform.tfstate.backup
+cp terraform.tfvars terraform-state/terraform.tfvars
 docker login $DOCKER_REPO
 docker run --rm -it \
-       -v $CURRENT_DIR/terraform.tfvars:/pan-demo/terraform.tfvars \
-       -v $CURRENT_DIR/terraform.tfstate:/pan-demo/terraform/terraform.tfstate \
-       -v $CURRENT_DIR/terraform.tfstate.backup:/pan-demo/terraform/terraform.tfstate.backup \
-       -v $CURRENT_DIR/.terraform:/pan-demo/terraform/.terraform \
+       -v $CURRENT_DIR/terraform-state:/pan-demo/terraform-state \
        $DOCKER_REPO/tiger/pan-demo-tool:local "$@"
