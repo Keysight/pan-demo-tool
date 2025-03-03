@@ -307,9 +307,11 @@ class Deployer(object):
         session       = utils.create_session(config_url)
 
         if 'panfw_detail' in output:
-            pan_fw_ip = output['panfw_detail']['value']['private_ip']
+            pan_fw_client_gw = output['panfw_detail']['value']['panfw_cli_private_ip']
+            pan_fw_server_gw = output['panfw_detail']['value']['panfw_srv_private_ip']
         #aws_nw_fw_ip = 
-        utils.set_gateway (session, 'PAN-VM-FW-Client', pan_fw_ip)
+        utils.set_gateway (session, 'PAN-VM-FW-Client', pan_fw_client_gw)
+        utils.set_gateway (session, 'PAN-VM-FW-Server', pan_fw_server_gw)
         agents = {
             'PAN-VM-FW-Client': [agent['private_ip'] for agent in output['panfw_client_agent_detail']['value']],
             'AWS-NW-FW-Client': [agent['private_ip'] for agent in output['awsfw_client_agent_detail']['value']],
