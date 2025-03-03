@@ -17,6 +17,25 @@ locals{
         #! /bin/bash
         sudo sudo chmod 777 /var/log/
         sudo sh /opt/keysight/tiger/active/bin/Appsec_init ${module.mdw.mdw_detail.private_ip} --username "${var.controller_username}" --password "${var.controller_password}">> /var/log/Appsec_init.log
+        cyperfagent tag set Role=${local.cli_agent_tag}
+    EOF
+    agent_init_srv = <<-EOF
+        #! /bin/bash
+        sudo sudo chmod 777 /var/log/
+        sudo sh /opt/keysight/tiger/active/bin/Appsec_init ${module.mdw.mdw_detail.private_ip} --username "${var.controller_username}" --password "${var.controller_password}">> /var/log/Appsec_init.log
+        cyperfagent tag set Role=${local.srv_agent_tag}
+    EOF
+    agent_init_cli_pan = <<-EOF
+        #! /bin/bash
+        sudo sudo chmod 777 /var/log/
+        sudo sh /opt/keysight/tiger/active/bin/Appsec_init ${module.mdw.mdw_detail.private_ip} --username "${var.controller_username}" --password "${var.controller_password}">> /var/log/Appsec_init.log
+        cyperfagent tag set Role=${local.cli_agent_tag_pan}
+    EOF
+    agent_init_srv_pan = <<-EOF
+        #! /bin/bash
+        sudo sudo chmod 777 /var/log/
+        sudo sh /opt/keysight/tiger/active/bin/Appsec_init ${module.mdw.mdw_detail.private_ip} --username "${var.controller_username}" --password "${var.controller_password}">> /var/log/Appsec_init.log
+        cyperfagent tag set Role=${local.srv_agent_tag_pan}
     EOF
     panfw_init_cli = <<-EOF
         vmseries-bootstrap-aws-s3bucket=${aws_s3_bucket.pan_config_bucket.bucket}
@@ -448,8 +467,7 @@ module "clientagents" {
     tags = {
         project_tag = local.project_tag,
         aws_owner   = var.aws_owner,
-        options_tag = local.options_tag,
-        agenttype = local.cli_agent_tag
+        options_tag = local.options_tag
     }
     aws_stack_name = var.aws_stack_name
     # aws_auth_key   = var.aws_auth_key
@@ -472,13 +490,12 @@ module "serveragents" {
         project_tag = local.project_tag,
         aws_owner   = var.aws_owner,
         options_tag = local.options_tag,
-        agenttype = local.srv_agent_tag
     }
     aws_stack_name = var.aws_stack_name
     # aws_auth_key   = var.aws_auth_key
     aws_agent_machine_type = var.aws_agent_machine_type
     agent_role = "server-awsfw"
-    agent_init_cli = local.agent_init_cli
+    agent_init_cli = local.agent_init_srv
 }
 
 ####### Agents for panfw #######
@@ -495,14 +512,13 @@ module "clientagents-pan" {
     tags = {
         project_tag = local.project_tag,
         aws_owner   = var.aws_owner,
-        options_tag = local.options_tag,
-        agenttype = local.cli_agent_tag_pan
+        options_tag = local.options_tag
     }
     aws_stack_name = var.aws_stack_name
     # aws_auth_key   = var.aws_auth_key
     aws_agent_machine_type = var.aws_agent_machine_type
     agent_role = "client-panfw"
-    agent_init_cli = local.agent_init_cli
+    agent_init_cli = local.agent_init_cli_pan
 }
 
 module "serveragents-pan" {
@@ -518,14 +534,13 @@ module "serveragents-pan" {
     tags = {
         project_tag = local.project_tag,
         aws_owner   = var.aws_owner,
-        options_tag = local.options_tag,
-        agenttype = local.srv_agent_tag_pan
+        options_tag = local.options_tag
     }
     aws_stack_name = var.aws_stack_name
     # aws_auth_key   = var.aws_auth_key
     aws_agent_machine_type = var.aws_agent_machine_type
     agent_role = "server-panfw"
-    agent_init_cli = local.agent_init_cli
+    agent_init_cli = local.agent_init_srv_pan
 }
 
 ##### AWS NGFW ####
@@ -614,7 +629,9 @@ output "panfw_detail"{
   value = {
     "name" : module.panfw.panfw_detail.name,
     "public_ip" : module.panfw.panfw_detail.public_ip,
-    "private_ip" : module.panfw.panfw_detail.private_ip
+    "private_ip" : module.panfw.panfw_detail.private_ip,
+    "panfw_cli_private_ip" : module.panfw.panfw_detail.panfw_cli_private_ip,
+    "panfw_srv_private_ip" : module.panfw.panfw_detail.panfw_srv_private_ip
   }
 }
 
