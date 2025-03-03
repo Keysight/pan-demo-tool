@@ -36,7 +36,7 @@ variable "panfw_init_cli" {
 
 variable "panfw_version" {
   type        = string
-  default     = "PA-VM-AWS-10.2.10-h12"
+  default     = "PA-VM-AWS-11.2.3-h3"
   description = "Version for the pan fw"
 }
 
