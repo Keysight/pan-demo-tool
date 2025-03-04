@@ -19,7 +19,7 @@ resource "aws_network_interface" "aws_panfw_cli_interface" {
     }
     source_dest_check = false
     subnet_id = var.resource_group.client_subnet
-    security_groups = [var.resource_group.security_group]
+    security_groups = [var.resource_group.security_group_test]
 }
 
 resource "aws_network_interface" "aws_panfw_srv_interface" {
@@ -29,7 +29,7 @@ resource "aws_network_interface" "aws_panfw_srv_interface" {
     }
     source_dest_check = false
     subnet_id = var.resource_group.server_subnet
-    security_groups = [var.resource_group.security_group]
+    security_groups = [var.resource_group.security_group_test]
 }
 
 data "aws_ami" "panfw_ami" {

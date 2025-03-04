@@ -1,6 +1,7 @@
 variable "resource_group" {
   type    = object({
     security_group = string,
+    security_group_test = string,
     management_subnet = string,
     client_subnet = string,
     server_subnet = string,

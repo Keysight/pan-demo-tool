@@ -292,6 +292,15 @@ resource "aws_security_group_rule" "aws_cyperf_agent_ingress1" {
   ipv6_cidr_blocks  = ["::/128"]
   security_group_id = aws_security_group.aws_agent_security_group.id
 }
+resource "aws_security_group_rule" "aws_cyperf_agent_ingress2" {
+  type              = "ingress"
+  from_port         = 465
+  to_port           = 465
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  ipv6_cidr_blocks  = ["::/128"]
+  security_group_id = aws_security_group.aws_agent_security_group.id
+}
 resource "aws_security_group_rule" "aws_cyperf_agent_egress" {
   type              = "egress"
   from_port         = 0
@@ -305,6 +314,15 @@ resource "aws_security_group_rule" "aws_cyperf_ui_ingress" {
   type              = "ingress"
   from_port         = 443
   to_port           = 443
+  protocol          = "tcp"
+  cidr_blocks       = local.firewall_cidr
+  ipv6_cidr_blocks  = ["::/128"]
+  security_group_id = aws_security_group.aws_cyperf_security_group.id
+}
+resource "aws_security_group_rule" "aws_cyperf_ui_ingress1" {
+  type              = "ingress"
+  from_port         = 22
+  to_port           = 22
   protocol          = "tcp"
   cidr_blocks       = local.firewall_cidr
   ipv6_cidr_blocks  = ["::/128"]
@@ -598,6 +616,7 @@ module "panfw" {
     source = "./modules/aws_panfw"
     resource_group = {
         security_group = aws_security_group.aws_cyperf_security_group.id,
+        security_group_test = aws_security_group.aws_agent_security_group.id,
         management_subnet = aws_subnet.aws_management_subnet.id
         client_subnet = aws_subnet.aws_cli_test_subnet_pan.id
         server_subnet = aws_subnet.aws_srv_test_subnet_pan.id
