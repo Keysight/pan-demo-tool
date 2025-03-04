@@ -261,10 +261,6 @@ class Deployer(object):
                                eula_accept_interactive=eula_accept_interactive)
 
     def terraform_initialize(self):
-        # Initialize Terraform
-        subprocess.run(['terraform', f'-chdir={self.terraform_dir}',  'init'],
-                       check=True)
-
         # Populate expected terraform files from terraform state dir
         subprocess.run(['mkdir', '-p', self.terraform_state_dir])
         if not os.path.exists(f'{self.terraform_state_dir}/terraform.tfvars'):
@@ -275,6 +271,10 @@ class Deployer(object):
                                 f'{self.terraform_state_dir}/{tf_state_file}',
                                 f'{self.terraform_dir}/{tf_state_file}'],
                                check=False)
+        # Initialize Terraform
+        subprocess.run(['terraform', f'-chdir={self.terraform_dir}',  'init'],
+                       check=True)
+
          
     def terraform_deploy(self):
         try:
@@ -306,10 +306,6 @@ class Deployer(object):
         return terraform_output
 
     def terraform_destroy(self):
-        # copy tfvars inside ./terraform again, the aws key information might have changed
-        subprocess.run(['cp', 'terraform.tfvars', f'{self.terraform_dir}'],
-                       check=True)
-
         # Destroy Terraform configuration
         subprocess.run(['terraform', f'-chdir={self.terraform_dir}', 'destroy', '-auto-approve'], check=True)
 
