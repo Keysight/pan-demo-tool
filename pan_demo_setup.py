@@ -219,12 +219,19 @@ class CyPerfUtils(object):
 class Deployer(object):
     def __init__(self):
         self.terraform_dir             = './terraform'
+        self.terraform_state_dir       = './terraform-state'
 
         self.controller_admin_user     = 'admin'
         self.controller_admin_password = 'CyPerf&Keysight#1'
 
         self.license_server_user       = self.controller_admin_user
         self.license_server_password   = self.controller_admin_password
+
+        self.terraform_state_files     = ['.terraform',
+                                          'terraform.tfvars',
+                                          'terraform.tfstate',
+                                          'terraform.tfstate.backup',
+                                          '.terraform.lock.hcl']
 
     def _get_utils(self, terraform_output, eula_accept_interactive=True):
         if 'mdw_detail' in terraform_output:
@@ -253,42 +260,66 @@ class Deployer(object):
                                password=self.controller_admin_password,
                                eula_accept_interactive=eula_accept_interactive)
 
+    def terraform_initialize(self):
+        # Populate expected terraform files from terraform state dir
+        subprocess.run(['mkdir', '-p', self.terraform_state_dir])
+        if not os.path.exists(f'{self.terraform_state_dir}/terraform.tfvars'):
+            subprocess.run(['cp', 'terraform.tfvars', self.terraform_state_dir])
+        for tf_state_file in self.terraform_state_files:
+            if os.path.exists(f'{self.terraform_state_dir}/{tf_state_file}'):
+                subprocess.run(['cp', '-r',
+                                f'{self.terraform_state_dir}/{tf_state_file}',
+                                f'{self.terraform_dir}/{tf_state_file}'],
+                               check=False)
+        # Initialize Terraform
+        subprocess.run(['terraform', f'-chdir={self.terraform_dir}',  'init'],
+                       check=True)
+
+         
     def terraform_deploy(self):
-        # cp tfvars inside ./terraform
-        subprocess.run(['cp', 'terraform.tfvars', f'{self.terraform_dir}'], check=True)
-
-        # Initialize Terraform    
-        subprocess.run(['terraform', f'-chdir={self.terraform_dir}',  'init'], check=True)
-
-        # Apply Terraform configuration
-        subprocess.run(['terraform', f'-chdir={self.terraform_dir}', 'apply', '-auto-approve'], check=True)
+        try:
+            # Apply Terraform configuration
+            subprocess.run(['terraform',
+                            f'-chdir={self.terraform_dir}',
+                            'apply',
+                            '-auto-approve'], check=True)
+        finally:
+            # persist Terraform state to terraform state dir
+            for tf_state_file in self.terraform_state_files:
+                subprocess.run(['cp', '-r',
+                                f'{self.terraform_dir}/{tf_state_file}',
+                                f'{self.terraform_state_dir}/{tf_state_file}'],
+                               check=False)
 
     def collect_terraform_output(self):
         # Capture the output in JSON format
-        result = subprocess.run(['terraform', f'-chdir={self.terraform_dir}', 'output', '-json'], capture_output=True, text=True, check=True)
-        
+        result = subprocess.run(['terraform',
+                                 f'-chdir={self.terraform_dir}',
+                                 'output',
+                                 '-json'],
+                                capture_output=True,
+                                text=True,
+                                check=True)
         # Parse the JSON output
         terraform_output = json.loads(result.stdout)
 
         return terraform_output
 
     def terraform_destroy(self):
-        # copy tfvars inside ./terraform again, the aws key information might have changed
-        subprocess.run(['cp', 'terraform.tfvars', f'{self.terraform_dir}'], check=True)
-
-        # Initialize Terraform, in case we running destroy once more
-        subprocess.run(['terraform', f'-chdir={self.terraform_dir}',  'init'], check=True)
-
         # Destroy Terraform configuration
         subprocess.run(['terraform', f'-chdir={self.terraform_dir}', 'destroy', '-auto-approve'], check=True)
 
         # Remove all temporary files
-        subprocess.run(['rm', '-f',  f'{self.terraform_dir}/terraform.tfvars'], check=True)
-        subprocess.run(['rm', '-f',  f'{self.terraform_dir}/terraform.tfstate'], check=True)
-        subprocess.run(['rm', '-f',  f'{self.terraform_dir}/terraform.tfstate.backup'], check=True)
-        subprocess.run(['rm', '-f',  f'{self.terraform_dir}/.terraform.lock.hcl'], check=True)
-        subprocess.run(['rm', '-rf', f'{self.terraform_dir}/.terraform/'], check=True)
-        subprocess.run(['rm', '-f',  f'terraform.tfstate'], check=True)
+        for tf_state_file in self.terraform_state_files:
+            subprocess.run(['rm', '-rf',
+                            f'{self.terraform_dir}/{tf_state_file}'],
+                           check=False)
+            subprocess.run(['rm', '-rf',
+                            f'{self.terraform_state_dir}/{tf_state_file}'],
+                           check=False)
+
+    def initialize(self, args):
+        self.terraform_initialize()
 
     def _do_accept_eula_interactively(self):
         if 'CYPERF_EULA_ACCEPTED' in os.environ:
@@ -331,7 +362,7 @@ class Deployer(object):
             utils.delete_all_configs()
             utils.remove_license_server()
 
-        self.terraform_destroy ()
+        self.terraform_destroy()
 
 def parse_cli_options():
     import argparse
@@ -351,6 +382,8 @@ def parse_cli_options():
 def main():
     args     = parse_cli_options()
     deployer = Deployer()
+
+    deployer.initialize(args)
 
     if args.deploy:
         deployer.deploy(args)

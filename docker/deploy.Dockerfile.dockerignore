@@ -1,0 +1,7 @@
+.git/**/*
+.git
+terraform-state
+terraform-state/**/*
+*.tfvars
+pan_demo_setup.tar
+docker/*
