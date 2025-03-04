@@ -1,0 +1,5 @@
+.git/**/*
+.git
+terraform_state/**/*
+*.tfvars
+pan_demo_setup.tar
