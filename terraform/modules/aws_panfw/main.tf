@@ -39,6 +39,10 @@ data "aws_ami" "panfw_ami" {
       name   = "product-code"
       values = [var.panfw_product_code]
     }
+    filter {
+      name   = "name"
+      values = [var.panfw_ami_name]
+    }
 }
 
 resource "aws_eip" "panfw_public_ip" {
