@@ -1,38 +1,39 @@
-# Terraform deployments
 
 # Introduction
 
-This Terraform sciprt deploy CyPerf Controller, CyPerf Agents, AWS Network firewall, PAN FW in aws cloud providers.
+This document describes how user can deploy the Keysight CyPerf controller, and agents, along with the Palo Alto VM series firewall and AWS Network Firewall, inside a Docker Container. The following sections contain information about the prerequisites, deployment, and destruction of setups and config using a sample bash script.
+
 All the necessary resources will be created from scratch, including VPC, subnets, route table, Security group, Internet Gateway, PAN FW, NGFW etc.
 
 # Prerequisites
 
 - Linux box
-- Install latest version of Terraform https://learn.hashicorp.com/tutorials/terraform/install-cli
 - git clone https://github.com/Keysight/pan-demo-tool.git
+- Install Docker Engine in your desired host platform if not already. Refer [Install Docker Engine Server](https://docs.docker.com/engine/install/#server) for more details.
 - AWS CLI Credentials.
-- s3 bucket where PAN config stored.
 - update terraform.tfvars flies with below parameters
 ```
-aws_stack_name="<stack name eg. cyperftest>"
-aws_region="<AWS region eg. us-west-2>"
+aws_stack_name="pan-demo"
+aws_region="us-west-2"
 aws_access_key_id="XXXXXXXXXXXXX"
 aws_secret_access_key="XXXXXXXXXXXXXXX"
 aws_session_token="XXXXXXXX"
-panfw_bootstrap_bucket="<s3 bucket where PAN config stored>"
+aws_auth_key="<optional>"
+aws_allowed_cidr=["<allowed cidr for accessing resources>"]
+aws_license_server="x.x.x.x"
 ```
 
-# How to use:
+# Deploy the setup
 
-A python script 'cyperf_e2e.py' will deploy entire topology and retrun CyPerf controller IP.
+A shell script 'pan_demo_setup.sh' will deploy entire topology and configure test for ready to run.
 
 ```
-python3 cyperf_e2e.py
+pan_demo_setup.sh --deploy
 ```
 # Destroy the setup
 
 ```
-terraform -chdir=./terraform destroy -auto-approve
+pan_demo_setup.sh --destroy
 ```
 
 
