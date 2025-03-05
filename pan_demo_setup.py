@@ -236,6 +236,40 @@ class CyPerfUtils(object):
         except cyperf.ApiException as e:
             raise (e)
 
+    def patch_controller (self, key_file):
+        # Copy all files from the 'simple-ui' folder to the controller
+        local_folder = 'simple-ui'
+        remote_folder = '/home/cyperf'
+        ssh_user = 'cyperf'
+        for file_name in os.listdir(local_folder):
+            local_file = os.path.join(local_folder, file_name)
+            if os.path.isfile(local_file):
+                scp_command = [
+                    "scp",
+                    "-i", key_file,
+                    local_file,
+                    f"{ssh_user}@{self.controller}:{remote_folder}"
+                ]
+                subprocess.run(scp_command, check=True)
+                if file_name.endswith('.sh'):
+                    chmod_command = [
+                        "ssh",
+                        "-i", key_file,
+                        f"{ssh_user}@{self.controller}",
+                        f"chmod +x {remote_folder}/{file_name}"
+                    ]
+                    subprocess.run(chmod_command, check=True)
+        
+        # Now call the script that patches the controller and switches to the simple UI
+        patch_command = [
+            "ssh",
+            "-i", key_file,
+            f"{ssh_user}@{self.controller}",
+            "./switch-to-simple-ui.sh"
+        ]
+        subprocess.run(chmod_command, check=True)
+
+
 class Deployer(object):
     def __init__(self):
         self.terraform_dir             = './terraform'
@@ -368,6 +402,7 @@ class Deployer(object):
 
             file_path = os.path.expanduser("~/.ssh/id_rsa")
             os.chmod(file_path, 0o600)
+            utils.patch_controller("~/.ssh/id_rsa")
             
         #aws_nw_fw_ip = 
         utils.set_gateway (session, 'PAN-VM-FW-Client', pan_fw_client_gw)
