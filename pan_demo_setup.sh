@@ -6,7 +6,9 @@ mkdir -p terraform-state/.terraform
 touch terraform-state/terraform.tfstate
 touch terraform-state/terraform.tfstate.backup
 cp terraform.tfvars terraform-state/terraform.tfvars
-docker load -i pan_demo_setup.tar
+if [ -f pan_demo_setup.tar ]; then
+    docker load < pan_demo_setup.tar
+fi
 docker run --rm -it \
        -v "$CURRENT_DIR/terraform-state":/pan-demo/terraform-state \
        -e CYPERF_EULA_ACCEPTED=$CYPERF_EULA_ACCEPTED \
