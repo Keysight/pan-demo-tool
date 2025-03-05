@@ -19,7 +19,7 @@ class CyPerfUtils(object):
        UNDERLINE = '\033[4m'
        END = '\033[0m'
 
-    def __init__(self, controller, username="", password="", license_server=None, license_user="", license_password="", eula_accept_interactive=True):
+    def __init__(self, controller, username="", password="", license_server=None, license_user="", license_password="", eula_accept_interactive=True, alive_timeout=600):
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         self.controller               = controller
         self.host                     = f'https://{controller}'
@@ -37,7 +37,7 @@ class CyPerfUtils(object):
         self.added_license_servers    = []
 
         #TBD: this defaults to a timeout of 10m, should we take a custom timeout?
-        self.api_client.wait_for_controller_up()
+        self.api_client.wait_for_controller_up(alive_timeout)
 
         if self.license_server:
             self.update_license_server()
@@ -355,12 +355,14 @@ class Deployer(object):
 
     def destroy(self, args):
         output = self.collect_terraform_output()
-        utils  = self._get_utils(output, self._do_accept_eula_interactively())
-        if utils:
-            utils.delete_all_sessions()
-            utils.delete_all_configs()
-            utils.remove_license_server()
-
+        try:
+            utils = self._get_utils(output, eula_accept_interactive=False, alive_timeout=5)
+            if utils:
+                utils.delete_all_sessions()
+                utils.delete_all_configs()
+                utils.remove_license_server()
+        except Exception:
+            print("Failed while connecting to CyPerf Controller to remove licenses, ignoring...")
         self.terraform_destroy()
 
 def parse_cli_options():
