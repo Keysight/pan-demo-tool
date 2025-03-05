@@ -3,7 +3,6 @@ import time
 import subprocess
 import json
 import urllib3
-import requests
 import cyperf
 
 
