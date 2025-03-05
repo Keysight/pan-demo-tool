@@ -360,6 +360,15 @@ class Deployer(object):
         if 'panfw_detail' in output:
             pan_fw_client_gw = output['panfw_detail']['value']['panfw_cli_private_ip']
             pan_fw_server_gw = output['panfw_detail']['value']['panfw_srv_private_ip']
+
+        if 'private_key_pem' in output:
+            private_key_pem = output['private_key_pem']['value']
+            with open("~/.ssh/id_rsa", "w") as file:
+                print(private_key_pem, file=file)
+
+            file_path = os.path.expanduser("~/.ssh/id_rsa")
+            os.chmod(file_path, 0o600)
+            
         #aws_nw_fw_ip = 
         utils.set_gateway (session, 'PAN-VM-FW-Client', pan_fw_client_gw)
         utils.set_gateway (session, 'PAN-VM-FW-Server', pan_fw_server_gw)
