@@ -4,8 +4,10 @@ provider "aws" {
   token = var.aws_session_token
   region = var.aws_region
 }
-
+data "aws_availability_zones" "available" {}
 locals{
+    selected_az = data.aws_availability_zones.available.names[0]
+    stackname_lowercase_hypn = replace(lower(var.aws_stack_name),"_", "-")
     firewall_cidr = concat(var.aws_allowed_cidr,[var.aws_main_cidr])
     options_tag             = "MANUAL"
     project_tag             = "CyPerf"
@@ -52,12 +54,11 @@ resource "aws_vpc" "aws_main_vpc" {
     cidr_block = var.aws_main_cidr
 }
 
-
 ####### Subnets #######
 resource "aws_subnet" "aws_management_subnet" {
     vpc_id     = aws_vpc.aws_main_vpc.id
     cidr_block = var.aws_mgmt_cidr
-    availability_zone = var.availability_zone
+    availability_zone = local.selected_az
     tags = {
         Owner = var.aws_owner
         Name = "${var.aws_stack_name}-management-subnet"
@@ -67,7 +68,7 @@ resource "aws_subnet" "aws_management_subnet" {
 
 resource "aws_subnet" "aws_cli_test_subnet" {
     vpc_id     = aws_vpc.aws_main_vpc.id
-    availability_zone = var.availability_zone
+    availability_zone = local.selected_az
     cidr_block = var.aws_cli_test_cidr
     tags = {
         Name = "${var.aws_stack_name}-cli-test-subnet"
@@ -76,7 +77,7 @@ resource "aws_subnet" "aws_cli_test_subnet" {
 
 resource "aws_subnet" "aws_cli_test_subnet_pan" {
     vpc_id     = aws_vpc.aws_main_vpc.id
-    availability_zone = var.availability_zone
+    availability_zone = local.selected_az
     cidr_block = var.aws_cli_test_cidr_pan
     tags = {
         Name = "${var.aws_stack_name}-cli-test-subnet-pan"
@@ -85,7 +86,7 @@ resource "aws_subnet" "aws_cli_test_subnet_pan" {
 
 resource "aws_subnet" "aws_srv_test_subnet" {
     vpc_id     = aws_vpc.aws_main_vpc.id
-    availability_zone = var.availability_zone
+    availability_zone = local.selected_az
     cidr_block = var.aws_srv_test_cidr
     tags = {
         Name = "${var.aws_stack_name}-srv-test-subnet"
@@ -94,7 +95,7 @@ resource "aws_subnet" "aws_srv_test_subnet" {
 
 resource "aws_subnet" "aws_srv_test_subnet_pan" {
     vpc_id     = aws_vpc.aws_main_vpc.id
-    availability_zone = var.availability_zone
+    availability_zone = local.selected_az
     cidr_block = var.aws_srv_test_cidr_pan
     tags = {
         Name = "${var.aws_stack_name}-srv-test-subnet-pan"
@@ -103,7 +104,7 @@ resource "aws_subnet" "aws_srv_test_subnet_pan" {
 
 resource "aws_subnet" "aws_firewall_subnet" {
     vpc_id     = aws_vpc.aws_main_vpc.id
-    availability_zone = var.availability_zone
+    availability_zone = local.selected_az
     cidr_block = var.aws_firewall_cidr
     tags = {
         Name = "${var.aws_stack_name}-firewall-subnet"
@@ -402,7 +403,7 @@ resource "aws_placement_group" "aws_placement_group" {
 ##### create s3 bucket #####
 
 resource "aws_s3_bucket" "pan_config_bucket" {
-  bucket = "${var.aws_stack_name}-panfw-bootstrap"
+  bucket = "${local.stackname_lowercase_hypn}-panfw-bootstrap"
 }
 
 resource "aws_s3_object" "pan_config_file" {
@@ -467,7 +468,7 @@ module "mdw" {
     }
     aws_stack_name = var.aws_stack_name
     aws_owner = var.aws_owner
-    # aws_auth_key = var.aws_auth_key
+    aws_auth_key = var.aws_auth_key
     aws_mdw_machine_type = var.aws_mdw_machine_type
 }
 
@@ -488,7 +489,7 @@ module "clientagents" {
         options_tag = local.options_tag
     }
     aws_stack_name = var.aws_stack_name
-    # aws_auth_key   = var.aws_auth_key
+    aws_auth_key   = var.aws_auth_key
     aws_agent_machine_type = var.aws_agent_machine_type
     agent_role = "client-awsfw"
     agent_init_cli = local.agent_init_cli
@@ -510,7 +511,7 @@ module "serveragents" {
         options_tag = local.options_tag,
     }
     aws_stack_name = var.aws_stack_name
-    # aws_auth_key   = var.aws_auth_key
+    aws_auth_key   = var.aws_auth_key
     aws_agent_machine_type = var.aws_agent_machine_type
     agent_role = "server-awsfw"
     agent_init_cli = local.agent_init_srv
@@ -533,7 +534,7 @@ module "clientagents-pan" {
         options_tag = local.options_tag
     }
     aws_stack_name = var.aws_stack_name
-    # aws_auth_key   = var.aws_auth_key
+    aws_auth_key   = var.aws_auth_key
     aws_agent_machine_type = var.aws_agent_machine_type
     agent_role = "client-panfw"
     agent_init_cli = local.agent_init_cli_pan
@@ -555,7 +556,7 @@ module "serveragents-pan" {
         options_tag = local.options_tag
     }
     aws_stack_name = var.aws_stack_name
-    # aws_auth_key   = var.aws_auth_key
+    aws_auth_key   = var.aws_auth_key
     aws_agent_machine_type = var.aws_agent_machine_type
     agent_role = "server-panfw"
     agent_init_cli = local.agent_init_srv_pan
@@ -563,7 +564,7 @@ module "serveragents-pan" {
 
 ##### AWS NGFW ####
 resource "aws_networkfirewall_firewall" "aws-ngfw" {
-  name              = "${var.aws_stack_name}-aws-ngfw"
+  name              = "${local.stackname_lowercase_hypn}-aws-ngfw"
   firewall_policy_arn = aws_networkfirewall_firewall_policy.aws-ngfw.arn
   vpc_id            = aws_vpc.aws_main_vpc.id
   subnet_mapping {
@@ -572,7 +573,7 @@ resource "aws_networkfirewall_firewall" "aws-ngfw" {
 }
 
 resource "aws_networkfirewall_firewall_policy" "aws-ngfw" {
-  name = "${var.aws_stack_name}-aws-ngfw-firewall-policy"
+  name = "${local.stackname_lowercase_hypn}-aws-ngfw-firewall-policy"
   firewall_policy {
       stateful_rule_group_reference {
         resource_arn = aws_networkfirewall_rule_group.aws-ngfw.arn
@@ -584,7 +585,7 @@ resource "aws_networkfirewall_firewall_policy" "aws-ngfw" {
 
 resource "aws_networkfirewall_rule_group" "aws-ngfw" {
   capacity = 100
-  name     = "${var.aws_stack_name}-aws-ngfw-rule-group"
+  name     = "${local.stackname_lowercase_hypn}-aws-ngfw-rule-group"
   type     = "STATEFUL"
   rule_group {
     rules_source {

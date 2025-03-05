@@ -3,11 +3,6 @@ variable "aws_region" {
   default = "us-west-2"
 }
 
-variable "availability_zone" {
-  type    = string
-  default = "us-west-2a"
-}
-
 variable "aws_main_cidr" {
   type = string
   default = "172.16.0.0/16"
