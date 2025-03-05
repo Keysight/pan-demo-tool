@@ -4,6 +4,7 @@ import subprocess
 import json
 import urllib3
 import cyperf
+from datetime import datetime
 
 
 class CyPerfUtils(object):
@@ -42,11 +43,7 @@ class CyPerfUtils(object):
         if self.license_server:
             self.update_license_server()
 
-        self.agents = {}
-        agents_api  = cyperf.AgentsApi(self.api_client)
-        agents      = agents_api.get_agents()
-        for agent in agents:
-            self.agents[agent.ip] = agent
+        self.agents_api = cyperf.AgentsApi(self.api_client)
 
     def _call_api(self, func):
         while 1:
@@ -190,24 +187,48 @@ class CyPerfUtils(object):
                         ip_range.gw_start = gateway_ip
                         ip_range.update()
 
-    def assign_agents (self, session, agent_map, augment=False):
+    def __collect_agents(self, agent_map, timeout_seconds=300):
+        init_time = datetime.now()
+        elapsed_time = init_time - init_time
+        collected_all_agents = True
+        while elapsed_time.seconds < timeout_seconds:
+            agents = self.agents_api.get_agents()
+            collected_all_agents = True
+            for ip in agent_map:
+                matching_agents = [agent for agent in agents if agent.ip == ip]
+                if len(matching_agents) > 0:
+                    agent_map[ip] = matching_agents[0]
+                else:
+                    collected_all_agents = False
+            if collected_all_agents:
+                break
+            print(f"Waiting for all required agents to be available... [{elapsed_time.seconds // 60}m{elapsed_time.seconds % 60}s passed]")
+            time.sleep(10)
+            elapsed_time = datetime.now() - init_time
+        if not collected_all_agents:
+            raise Exception(f"Some required agents were not connected to CyPerf Controller within {timeout_seconds}s")
+
+    def assign_agents(self, session, agent_map, augment=False):
         # Assing agents to the indivual network segments based on the input provided
         for net_profile in session.config.config.network_profiles:
             for ip_net in net_profile.ip_network_segment:
                 if ip_net.name in agent_map:
                     mapped_ips    = agent_map[ip_net.name]
-                    agent_details = [cyperf.AgentAssignmentDetails(agent_id = self.agents[agent_ip].id, id = self.agents[agent_ip].id) for agent_ip in mapped_ips if agent_ip in self.agents] # why do we need to pass agent_id and id both????
+                    agents_by_ip     = {ip: None for ip in mapped_ips}
+                    self.__collect_agents(agents_by_ip)
+                    # why do we need to pass agent_id and id both????
+                    agent_details = [cyperf.AgentAssignmentDetails(agent_id=agent.id,
+                                                                   id=agent.id)
+                                     for agent in agents_by_ip.values()]
                     if not ip_net.agent_assignments:
                         ip_net.agent_assignments = cyperf.AgentAssignments(ByID=[], ByTag=[])
-
                     if augment:
                         ip_net.agent_assignments.by_id.extend(agent_details)
                     else:
                         ip_net.agent_assignments.by_id = agent_details
-
                     ip_net.agent_assignments.update()
 
-    def stop_test (self, session):
+    def stop_test(self, session):
         test_ops_api = cyperf.TestOperationsApi(self.api_client)
         test_stop_op = test_ops_api.start_stop_traffic(session_id = session.id)
         try:
@@ -328,7 +349,7 @@ class Deployer(object):
         return True
 
     def deploy(self, args):
-        self.terraform_deploy ()
+        self.terraform_deploy()
 
         output = self.collect_terraform_output()
         utils  = self._get_utils(output, self._do_accept_eula_interactively())
