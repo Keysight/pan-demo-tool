@@ -15,7 +15,7 @@ resource "tls_private_key" "cyperf" {
 }
 
 resource "aws_key_pair" "generated_key" {
-  key_name   = "generated-key"
+  key_name   = "${var.aws_stack_name}-generated-key"
   public_key = tls_private_key.cyperf.public_key_openssh
 }
 
