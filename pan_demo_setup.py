@@ -247,27 +247,43 @@ class CyPerfUtils(object):
                 scp_command = [
                     "scp",
                     "-i", key_file,
+                    "-o", "MACS=hmac-sha2-512",
+                    "-o", "StrictHostKeyChecking=accept-new",
                     local_file,
                     f"{ssh_user}@{self.controller}:{remote_folder}"
                 ]
-                subprocess.run(scp_command, check=True)
-                if file_name.endswith('.sh'):
-                    chmod_command = [
-                        "ssh",
-                        "-i", key_file,
-                        f"{ssh_user}@{self.controller}",
-                        f"chmod +x {remote_folder}/{file_name}"
-                    ]
-                    subprocess.run(chmod_command, check=True)
+                try:
+                    subprocess.run(scp_command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    if file_name.endswith('.sh'):
+                        chmod_command = [
+                            "ssh",
+                            "-i", key_file,
+                            "-o", "MACS=hmac-sha2-512",
+                            "-o", "StrictHostKeyChecking=accept-new",
+                            f"{ssh_user}@{self.controller}",
+                            f"chmod +x {remote_folder}/{file_name}"
+                        ]
+                        try:
+                            subprocess.run(chmod_command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                        except subprocess.CalledProcessError as chmod_error:
+                            print(f"Failed to set +x for {local_file}. Error code: {chmod_error.returncode}")
+                except subprocess.CalledProcessError as scp_error:
+                    print(f"Failed to copy {local_file}. Error code: {scp_error.returncode}")
+                    # print(f"Error message:\n{scp_error.stderr.decode()}")
         
         # Now call the script that patches the controller and switches to the simple UI
         patch_command = [
             "ssh",
             "-i", key_file,
+            "-o", "MACS=hmac-sha2-512",
             f"{ssh_user}@{self.controller}",
             "./switch-to-simple-ui.sh"
         ]
-        subprocess.run(chmod_command, check=True)
+        try:
+            subprocess.run(patch_command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        except subprocess.CalledProcessError as switch_error:
+            print(f"Failed to switch to simple UI. Error code: {switch_error.returncode}")
+            # print(f"Error message:\n{switch_error.stderr.decode()}")
 
 
 class Deployer(object):
@@ -396,13 +412,12 @@ class Deployer(object):
             pan_fw_server_gw = output['panfw_detail']['value']['panfw_srv_private_ip']
 
         if 'private_key_pem' in output:
-            private_key_pem = output['private_key_pem']['value']
-            with open("~/.ssh/id_rsa", "w") as file:
-                print(private_key_pem, file=file)
 
-            file_path = os.path.expanduser("~/.ssh/id_rsa")
-            os.chmod(file_path, 0o600)
-            utils.patch_controller("~/.ssh/id_rsa")
+            private_key_pem = output['private_key_pem']['value']
+            with open("genrated_private_key", "w") as file:
+                print(private_key_pem, file=file)
+            os.chmod("genrated_private_key", 0o600)
+            utils.patch_controller("genrated_private_key")
             
         #aws_nw_fw_ip = 
         utils.set_gateway (session, 'PAN-VM-FW-Client', pan_fw_client_gw)
