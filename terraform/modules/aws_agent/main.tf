@@ -1,5 +1,5 @@
 locals{
-    cli_agent_name = "${var.agent_role}-${var.aws_stack_name}-${var.agent_version}"
+    cli_agent_name = "${var.aws_stack_name}-${var.agent_role}-${var.agent_version}"
 }
 
 
@@ -45,7 +45,7 @@ resource "aws_instance" "aws_cli_agent" {
     }
     ami           = data.aws_ami.agent_ami.image_id 
     instance_type = var.aws_agent_machine_type
-    //iam_instance_profile = var.resource_group.instance_profile
+    iam_instance_profile = var.resource_group.instance_profile
     //placement_group = "${var.aws_stack_name}-pg-cluster"
 
     ebs_block_device {

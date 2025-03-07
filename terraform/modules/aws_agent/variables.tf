@@ -3,7 +3,7 @@ variable "resource_group" {
     aws_agent_security_group = string,
     aws_ControllerManagementSubnet = string
     aws_AgentTestSubnet = string
-    //instance_profile = string
+    instance_profile = string
   })
   description = "AWS resource group where you want to deploy in"
 }

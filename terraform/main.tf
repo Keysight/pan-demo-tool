@@ -17,26 +17,30 @@ locals{
     srv_agent_tag_pan       = "serveragent-panfw"
     agent_init_cli = <<-EOF
         #! /bin/bash
-        sudo sudo chmod 777 /var/log/
-        sudo sh /opt/keysight/tiger/active/bin/Appsec_init ${module.mdw.mdw_detail.private_ip} --username "${var.controller_username}" --password "${var.controller_password}">> /var/log/Appsec_init.log
+        sudo chmod 777 /var/log/
+        aws s3 cp s3://${aws_s3_bucket.pan_config_bucket.bucket}/init/Appsec_init_s3 /opt/keysight/tiger/active/bin/Appsec_init_s3
+        sudo sh /opt/keysight/tiger/active/bin/Appsec_init_s3 ${module.mdw.mdw_detail.private_ip} --username "${var.controller_username}" --password "${var.controller_password}">> /var/log/Appsec_init_s3.log
         cyperfagent tag set Role=${local.cli_agent_tag}
     EOF
     agent_init_srv = <<-EOF
         #! /bin/bash
-        sudo sudo chmod 777 /var/log/
-        sudo sh /opt/keysight/tiger/active/bin/Appsec_init ${module.mdw.mdw_detail.private_ip} --username "${var.controller_username}" --password "${var.controller_password}">> /var/log/Appsec_init.log
+        sudo chmod 777 /var/log/
+        aws s3 cp s3://${aws_s3_bucket.pan_config_bucket.bucket}/init/Appsec_init_s3 /opt/keysight/tiger/active/bin/Appsec_init_s3
+        sudo sh /opt/keysight/tiger/active/bin/Appsec_init_s3 ${module.mdw.mdw_detail.private_ip} --username "${var.controller_username}" --password "${var.controller_password}">> /var/log/Appsec_init_s3.log
         cyperfagent tag set Role=${local.srv_agent_tag}
     EOF
     agent_init_cli_pan = <<-EOF
         #! /bin/bash
-        sudo sudo chmod 777 /var/log/
-        sudo sh /opt/keysight/tiger/active/bin/Appsec_init ${module.mdw.mdw_detail.private_ip} --username "${var.controller_username}" --password "${var.controller_password}">> /var/log/Appsec_init.log
+        sudo chmod 777 /var/log/
+        aws s3 cp s3://${aws_s3_bucket.pan_config_bucket.bucket}/init/Appsec_init_s3 /opt/keysight/tiger/active/bin/Appsec_init_s3
+        sudo sh /opt/keysight/tiger/active/bin/Appsec_init_s3 ${module.mdw.mdw_detail.private_ip} --username "${var.controller_username}" --password "${var.controller_password}">> /var/log/Appsec_init_s3.log
         cyperfagent tag set Role=${local.cli_agent_tag_pan}
     EOF
     agent_init_srv_pan = <<-EOF
         #! /bin/bash
-        sudo sudo chmod 777 /var/log/
-        sudo sh /opt/keysight/tiger/active/bin/Appsec_init ${module.mdw.mdw_detail.private_ip} --username "${var.controller_username}" --password "${var.controller_password}">> /var/log/Appsec_init.log
+        sudo chmod 777 /var/log/
+        aws s3 cp s3://${aws_s3_bucket.pan_config_bucket.bucket}/init/Appsec_init_s3 /opt/keysight/tiger/active/bin/Appsec_init_s3
+        sudo sh /opt/keysight/tiger/active/bin/Appsec_init_s3 ${module.mdw.mdw_detail.private_ip} --username "${var.controller_username}" --password "${var.controller_password}">> /var/log/Appsec_init_s3.log
         cyperfagent tag set Role=${local.srv_agent_tag_pan}
     EOF
     panfw_init_cli = <<-EOF
@@ -65,6 +69,14 @@ resource "aws_subnet" "aws_management_subnet" {
     }
 }
 
+resource "aws_subnet" "aws_agent_mgmt_subnet" {
+    vpc_id     = aws_vpc.aws_main_vpc.id
+    availability_zone = local.selected_az
+    cidr_block = var.aws_agent_mgmt_cidr
+    tags = {
+        Name = "${var.aws_stack_name}-agent-mgmt-subnet"
+    }
+}
 
 resource "aws_subnet" "aws_cli_test_subnet" {
     vpc_id     = aws_vpc.aws_main_vpc.id
@@ -140,6 +152,13 @@ resource "aws_route_table_association" "aws_firewall_rt_association" {
     route_table_id = aws_route_table.aws_ngfw_rt.id
 }
 
+resource "aws_route_table" "aws_agent_mgmt_private_rt" {
+    vpc_id = aws_vpc.aws_main_vpc.id
+    tags = {
+        Name = "${var.aws_stack_name}-agent-mgmt-private-rt"
+    }    
+}
+
 resource "aws_route_table" "aws_private_rt" {
     vpc_id = aws_vpc.aws_main_vpc.id
     tags = {
@@ -159,6 +178,11 @@ resource "aws_route_table" "aws_igw_rt" {
     tags = {
         Name = "${var.aws_stack_name}-igw-rt"
     }    
+}
+
+resource "aws_route_table_association" "aws_agent_mgmt_rt_association" {
+    subnet_id      = aws_subnet.aws_agent_mgmt_subnet.id
+    route_table_id = aws_route_table.aws_agent_mgmt_private_rt.id
 }
 
 resource "aws_route_table_association" "aws_cli_test_rt_association" {
@@ -189,6 +213,19 @@ resource "aws_internet_gateway" "aws_internet_gateway" {
     vpc_id = aws_vpc.aws_main_vpc.id  
 }
 
+resource "aws_eip" "nat_eip" {
+  domain = "vpc"
+}
+
+resource "aws_nat_gateway" "aws_nat_gateway" {
+  allocation_id = aws_eip.nat_eip.id
+  subnet_id     = aws_subnet.aws_management_subnet.id
+
+  tags = {
+    Name = "${var.aws_stack_name}-nat-gateway"
+  }
+}
+
 resource "aws_route_table_association" "aws_igw_rt_association" {
     depends_on = [
       aws_internet_gateway.aws_internet_gateway
@@ -204,6 +241,15 @@ resource "aws_route" "aws_route_to_internet" {
     route_table_id            = aws_route_table.aws_public_rt.id
     destination_cidr_block    = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.aws_internet_gateway.id
+}
+
+resource "aws_route" "aws_route_to_nat" {
+    depends_on = [
+      aws_route_table_association.aws_agent_mgmt_rt_association
+    ]
+    route_table_id            = aws_route_table.aws_agent_mgmt_private_rt.id
+    destination_cidr_block    = "0.0.0.0/0"
+    gateway_id = aws_nat_gateway.aws_nat_gateway.id
 }
 
 resource "aws_route" "aws_route_to_ngfw" {
@@ -300,6 +346,14 @@ resource "aws_security_group_rule" "aws_cyperf_agent_ingress2" {
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
   ipv6_cidr_blocks  = ["::/128"]
+  security_group_id = aws_security_group.aws_agent_security_group.id
+}
+resource "aws_security_group_rule" "aws_cyperf_agent_ingress3" {
+  type              = "ingress"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  cidr_blocks       = [var.aws_main_cidr]
   security_group_id = aws_security_group.aws_agent_security_group.id
 }
 resource "aws_security_group_rule" "aws_cyperf_agent_egress" {
@@ -418,6 +472,12 @@ resource "aws_s3_object" "pan_config_file1" {
   source = "pan_config/init-cfg.txt"
 }
 
+resource "aws_s3_object" "appsec_init_file" {
+  bucket = aws_s3_bucket.pan_config_bucket.bucket
+  key    = "init/Appsec_init_s3"
+  source = "init_script/Appsec_init_s3"
+}
+
 ######## pan fw Bootstrap role panrofile #######
 
 data "aws_iam_policy_document" "bootstrap-assume-role-policy" {
@@ -479,9 +539,9 @@ module "clientagents" {
     source = "./modules/aws_agent"
     resource_group = {
         aws_agent_security_group = aws_security_group.aws_agent_security_group.id,
-        aws_ControllerManagementSubnet = aws_subnet.aws_management_subnet.id,
+        aws_ControllerManagementSubnet = aws_subnet.aws_agent_mgmt_subnet.id,
         aws_AgentTestSubnet = aws_subnet.aws_cli_test_subnet.id,
-        instance_profile = aws_iam_instance_profile.instance_profile.name
+        instance_profile = aws_iam_instance_profile.bootstrap_profile.name
     }
     tags = {
         project_tag = local.project_tag,
@@ -501,9 +561,9 @@ module "serveragents" {
     source = "./modules/aws_agent"
     resource_group = {
         aws_agent_security_group = aws_security_group.aws_agent_security_group.id,
-        aws_ControllerManagementSubnet = aws_subnet.aws_management_subnet.id,
+        aws_ControllerManagementSubnet = aws_subnet.aws_agent_mgmt_subnet.id,
         aws_AgentTestSubnet = aws_subnet.aws_srv_test_subnet.id,
-        instance_profile = aws_iam_instance_profile.instance_profile.name
+        instance_profile = aws_iam_instance_profile.bootstrap_profile.name
     }
     tags = {
         project_tag = local.project_tag,
@@ -524,9 +584,9 @@ module "clientagents-pan" {
     source = "./modules/aws_agent"
     resource_group = {
         aws_agent_security_group = aws_security_group.aws_agent_security_group.id,
-        aws_ControllerManagementSubnet = aws_subnet.aws_management_subnet.id,
+        aws_ControllerManagementSubnet = aws_subnet.aws_agent_mgmt_subnet.id,
         aws_AgentTestSubnet = aws_subnet.aws_cli_test_subnet_pan.id,
-        instance_profile = aws_iam_instance_profile.instance_profile.name
+        instance_profile = aws_iam_instance_profile.bootstrap_profile.name
     }
     tags = {
         project_tag = local.project_tag,
@@ -546,9 +606,9 @@ module "serveragents-pan" {
     source = "./modules/aws_agent"
     resource_group = {
         aws_agent_security_group = aws_security_group.aws_agent_security_group.id,
-        aws_ControllerManagementSubnet = aws_subnet.aws_management_subnet.id,
+        aws_ControllerManagementSubnet = aws_subnet.aws_agent_mgmt_subnet.id,
         aws_AgentTestSubnet = aws_subnet.aws_srv_test_subnet_pan.id,
-        instance_profile = aws_iam_instance_profile.instance_profile.name
+        instance_profile = aws_iam_instance_profile.bootstrap_profile.name
     }
     tags = {
         project_tag = local.project_tag,

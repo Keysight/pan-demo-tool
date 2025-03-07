@@ -15,6 +15,12 @@ variable "aws_mgmt_cidr" {
   description = "AWS mgmt subnet"
 }
 
+variable "aws_agent_mgmt_cidr" {
+  type = string
+  default = "172.16.2.0/24"
+  description = "AWS agent mgmt subnet"
+}
+
 variable "aws_cli_test_cidr" {
   type = string
   default = "172.16.3.0/24"
