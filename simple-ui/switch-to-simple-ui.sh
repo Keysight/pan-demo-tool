@@ -6,7 +6,14 @@ ORIGINAL_UI_VERSION=2.60.317-appsec
 ORIGINAL_REST_STATS_VERSION=1.0.14215-releasecyperf60
 DOCKER_CMD=docker
 
-# TODO: Update MRT(s) & dasboard(s)
+# Update the PDF template
+if test -f pan-demo-tool-report.mrt; then
+        TARGET_DIR=$(find / -type d -name "*_pdf-report-templates" 2>/dev/null)
+        cp -f pan-demo-tool-report.mrt $TARGET_DIR/ &>/dev/null
+        echo "    .... PDF template updated"
+else
+        echo "    .... no PDF template to update"
+fi
 
 # Apply stats patches
 if test -f rest-stats-service-patch.tar; then
