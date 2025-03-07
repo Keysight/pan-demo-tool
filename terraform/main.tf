@@ -40,7 +40,7 @@ locals{
         #! /bin/bash
         sudo chmod 777 /var/log/
         aws s3 cp s3://${aws_s3_bucket.pan_config_bucket.bucket}/init/Appsec_init_s3 /opt/keysight/tiger/active/bin/Appsec_init_s3
-        sudo apt apt update
+        sudo apt update
         sudo apt install -y dos2unix
         sudo dos2unix /opt/keysight/tiger/active/bin/Appsec_init_s3
         sudo sh /opt/keysight/tiger/active/bin/Appsec_init_s3 ${module.mdw.mdw_detail.private_ip} --username "${var.controller_username}" --password "${var.controller_password}">> /var/log/Appsec_init_s3.log
@@ -50,7 +50,7 @@ locals{
         #! /bin/bash
         sudo chmod 777 /var/log/
         aws s3 cp s3://${aws_s3_bucket.pan_config_bucket.bucket}/init/Appsec_init_s3 /opt/keysight/tiger/active/bin/Appsec_init_s3
-        sudo apt apt update
+        sudo apt update
         sudo apt install -y dos2unix
         sudo dos2unix /opt/keysight/tiger/active/bin/Appsec_init_s3
         sudo sh /opt/keysight/tiger/active/bin/Appsec_init_s3 ${module.mdw.mdw_detail.private_ip} --username "${var.controller_username}" --password "${var.controller_password}">> /var/log/Appsec_init_s3.log
@@ -60,7 +60,7 @@ locals{
         #! /bin/bash
         sudo chmod 777 /var/log/
         aws s3 cp s3://${aws_s3_bucket.pan_config_bucket.bucket}/init/Appsec_init_s3 /opt/keysight/tiger/active/bin/Appsec_init_s3
-        sudo apt apt update
+        sudo apt update
         sudo apt install -y dos2unix
         sudo dos2unix /opt/keysight/tiger/active/bin/Appsec_init_s3
         sudo sh /opt/keysight/tiger/active/bin/Appsec_init_s3 ${module.mdw.mdw_detail.private_ip} --username "${var.controller_username}" --password "${var.controller_password}">> /var/log/Appsec_init_s3.log
@@ -70,7 +70,7 @@ locals{
         #! /bin/bash
         sudo chmod 777 /var/log/
         aws s3 cp s3://${aws_s3_bucket.pan_config_bucket.bucket}/init/Appsec_init_s3 /opt/keysight/tiger/active/bin/Appsec_init_s3
-        sudo apt apt update
+        sudo apt update
         sudo apt install -y dos2unix
         sudo dos2unix /opt/keysight/tiger/active/bin/Appsec_init_s3
         sudo sh /opt/keysight/tiger/active/bin/Appsec_init_s3 ${module.mdw.mdw_detail.private_ip} --username "${var.controller_username}" --password "${var.controller_password}">> /var/log/Appsec_init_s3.log
