@@ -39,6 +39,4 @@ else
 	echo "    ... no private patches to undo"
 fi
 
-# TODO: Cleanup dashboard(s) and MRT(s) ???
-
 echo "... switch to regular workflow completed"
