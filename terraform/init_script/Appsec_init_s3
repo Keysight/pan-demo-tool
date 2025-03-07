@@ -359,7 +359,7 @@ else
   waitForInterfaceIPv4Assignment $secondInt
 
   echo "Set Controller IP, Test interface and Management interface"
-  setControllerIpAndInterfaces $CONTROLER_IP $secondInt $firstInt 60
+  setControllerIpAndInterfaces $CONTROLER_IP $secondInt $firstInt 300
 fi
 
 current_time=$(date "+%Y.%m.%d-%H.%M.%S")
