@@ -236,56 +236,6 @@ class CyPerfUtils(object):
         except cyperf.ApiException as e:
             raise (e)
 
-    def patch_controller (self, key_file):
-        # Copy all files from the 'simple-ui' folder to the controller
-        local_folder = 'simple-ui'
-        remote_folder = '/home/cyperf'
-        ssh_user = 'cyperf'
-        for file_name in os.listdir(local_folder):
-            local_file = os.path.join(local_folder, file_name)
-            if os.path.isfile(local_file):
-                scp_command = [
-                    "scp",
-                    "-i", key_file,
-                    "-o", "MACS=hmac-sha2-512",
-                    "-o", "StrictHostKeyChecking=accept-new",
-                    local_file,
-                    f"{ssh_user}@{self.controller}:{remote_folder}"
-                ]
-                try:
-                    subprocess.run(scp_command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                    if file_name.endswith('.sh'):
-                        chmod_command = [
-                            "ssh",
-                            "-i", key_file,
-                            "-o", "MACS=hmac-sha2-512",
-                            "-o", "StrictHostKeyChecking=accept-new",
-                            f"{ssh_user}@{self.controller}",
-                            f"chmod +x {remote_folder}/{file_name}"
-                        ]
-                        try:
-                            subprocess.run(chmod_command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                        except subprocess.CalledProcessError as chmod_error:
-                            print(f"Failed to set +x for {local_file}. Error code: {chmod_error.returncode}")
-                except subprocess.CalledProcessError as scp_error:
-                    print(f"Failed to copy {local_file}. Error code: {scp_error.returncode}")
-                    # print(f"Error message:\n{scp_error.stderr.decode()}")
-        
-        # Now call the script that patches the controller and switches to the simple UI
-        patch_command = [
-            "ssh",
-            "-i", key_file,
-            "-o", "MACS=hmac-sha2-512",
-            f"{ssh_user}@{self.controller}",
-            "./switch-to-simple-ui.sh"
-        ]
-        try:
-            subprocess.run(patch_command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        except subprocess.CalledProcessError as switch_error:
-            print(f"Failed to switch to simple UI. Error code: {switch_error.returncode}")
-            # print(f"Error message:\n{switch_error.stderr.decode()}")
-
-
 class Deployer(object):
     def __init__(self):
         self.terraform_dir             = './terraform'
@@ -410,15 +360,6 @@ class Deployer(object):
         if 'panfw_detail' in output:
             pan_fw_client_gw = output['panfw_detail']['value']['panfw_cli_private_ip']
             pan_fw_server_gw = output['panfw_detail']['value']['panfw_srv_private_ip']
-
-        if 'private_key_pem' in output:
-
-            private_key_pem = output['private_key_pem']['value']
-            with open("genrated_private_key", "w") as file:
-                print(private_key_pem, file=file)
-            os.chmod("genrated_private_key", 0o600)
-            utils.patch_controller("genrated_private_key")
-            
         #aws_nw_fw_ip = 
         utils.set_gateway (session, 'PAN-VM-FW-Client', pan_fw_client_gw)
         utils.set_gateway (session, 'PAN-VM-FW-Server', pan_fw_server_gw)

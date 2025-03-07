@@ -26,11 +26,6 @@ variable "aws_mdw_machine_type"{
   description = "MDW instance type"
 }
 
-variable "mdw_init" { 
-  type = string
-  description = "mdw init script"
-}
-
 variable "mdw_version" {
   type        = string
   default     = "keysight-cyperf-controller-6-0"
