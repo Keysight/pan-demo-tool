@@ -1,0 +1,366 @@
+#!/bin/sh
+
+if [ $# -lt 1 ]; then
+  echo ""
+  echo "Error:- Controller IP address is not specified"
+  echo ""
+  echo "Usage:- $0 <Controller IP Address> [OPTION]...."
+  echo ""
+  echo "Supported Options:"
+  echo "  --management-subnet <Management Interface Subnet>"
+  echo "  --management-security-group <Management Interface Security Group>"
+  echo "  --behind-alb"
+  echo "  --username <username>"
+  echo "  --password <password>"
+  echo "  --fingerprint <fingerprint>"
+  echo ""
+  exit 1
+fi
+
+CONTROLER_IP=$1
+
+# Flags and their default values
+IS_BEHIND_ALB='false'
+# Process arguments
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --management-subnet)
+      if [ "$1" != *=* ]; then shift; fi
+      MANAGEMENT_SUBNET="${1#*=}"
+      ;;
+    --management-security-group)
+      if [ "$1" != *=* ]; then shift; fi
+      MANAGEMENT_SECURITY_GROUP="${1#*=}"
+      ;;
+    --username)
+      if [ "$1" != *=* ]; then shift; fi
+      USERNAME="${1#*=}"
+      ;;
+     --password)
+      if [ "$1" != *=* ]; then shift; fi
+      PASSWORD="${1#*=}"
+      ;;
+    --fingerprint)
+      if [ "$1" != *=* ]; then shift; fi
+      FINGERPRINT="${1#*=}"
+      ;;
+    --behind-alb)
+      IS_BEHIND_ALB='true'
+      ;;
+    *)
+      # NOOP
+      ;;
+  esac
+  shift
+done
+
+echo "CONTROLER_IP:              $CONTROLER_IP"
+echo "MANAGEMENT_SUBNET:         $MANAGEMENT_SUBNET"
+echo "MANAGEMENT_SECURITY_GROUP: $MANAGEMENT_SECURITY_GROUP"
+echo "IS_BEHIND_ALB:             $IS_BEHIND_ALB"
+echo "USERNAME:                  $USERNAME" 
+echo "PASSWORD:                  $PASSWORD"
+echo "FINGERPRINT:               $FINGERPRINT"
+
+waitForInterfaceIPv4Assignment()
+{
+  interface_to_monitor=$1
+
+  # Waiting for the interface to get IP
+  while :
+  do
+    ip_addr=`ip addr show $interface_to_monitor | grep -Po 'inet \K[\d.]+'`
+    if [ ${#ip_addr} -ne 0 ]; then
+      echo "Interface $interface_to_monitor has got IP address ${ip_addr}"
+      break
+    fi
+    echo "Interface $interface_to_monitor didn't get IP address yet. Waiting for 2 sec..."
+    sleep 2
+  done
+}
+
+setControllerIpAndInterfaces()
+{
+  controller_ip=$1
+  test_interface=$2
+  management_interface=$3
+  interface_monitor_timeout=$4
+
+  echo "Removing node_id.txt"
+  sudo rm -rf /etc/portmanager/node_id.txt
+  #sudo cyperfagent interface test set $test_interface --skip-restart
+  timer=0
+  # Waiting for the test interface to set
+  while :
+  do
+    #typeset output
+    cyperfagent interface test set $test_interface --skip-restart
+    if [ $? -eq 0 ]; then
+       echo " test interface set successfully"
+       break
+    fi
+    echo "test interface set failed . waiting for 2 sec .."
+    sleep 2
+    timer=$((timer+2))
+    echo "timer = $timer"
+    if [[ $timer == $interface_monitor_timeout ]]; then
+        echo "Wait for $interface_monitor_timeout sec but test Interface is not set. Exiting ..."
+        break
+    fi
+  done
+
+  timer=0
+  # Waiting for the management interface to set
+  while :
+  do
+    #typeset output
+    cyperfagent interface management set $management_interface --skip-restart
+    if [ $? -eq 0 ]; then
+       echo " management interface set successfully"
+       break
+    fi
+    echo "management interface set failed . waiting for 2 sec .."
+    sleep 2
+    timer=$((timer+2))
+    echo "timer = $timer"
+    if [[ $timer == $interface_monitor_timeout ]]; then
+        echo "Wait for $interface_monitor_timeout sec but management Interface is not set. Exiting ..."
+        break
+    fi
+  done
+  #sudo cyperfagent interface management set $management_interface --skip-restart
+  #For backward compatibility
+  if [ -z "$USERNAME" ] && [ -z "$PASSWORD" ] && [ -z "$FINGERPRINT" ] ; then
+  	sudo cyperfagent controller set $controller_ip --skip-restart
+  #For username and password only and skip fingerprint idendity verification
+  elif [ -n "$USERNAME" ] && [ -n "$PASSWORD" ] && [ -z "$FINGERPRINT" ] ; then
+    sudo cyperfagent controller set $controller_ip --username $USERNAME --password $PASSWORD --skip-identity-verification --skip-restart
+  #For username and password with fingerprint idendity verification
+  elif [ -n "$USERNAME" ] && [ -n "$PASSWORD" ] && [ -n "$FINGERPRINT" ] ; then
+    sudo cyperfagent controller set $controller_ip --username $USERNAME --password $PASSWORD --fingerprint $FINGERPRINT --skip-restart
+  else
+    echo "Verify username, password, fingerprint parameter's value. Either provide username, password and skip fingerprint or specify all three."
+  fi
+  sudo cyperfagent configuration reload
+}
+
+creatAndApplyNetplan()
+{
+  echo > /etc/netplan/aws-vmimport-netplan.yaml
+  echo "network:" >> /etc/netplan/aws-vmimport-netplan.yaml
+  echo "  version: 2" >> /etc/netplan/aws-vmimport-netplan.yaml
+  echo "  renderer: networkd" >> /etc/netplan/aws-vmimport-netplan.yaml
+  echo "  ethernets:" >> /etc/netplan/aws-vmimport-netplan.yaml
+  echo "    $2:" >> /etc/netplan/aws-vmimport-netplan.yaml
+  echo "      dhcp4: yes" >> /etc/netplan/aws-vmimport-netplan.yaml
+  echo "      dhcp-identifier: mac" >> /etc/netplan/aws-vmimport-netplan.yaml
+  echo "      dhcp4-overrides:" >> /etc/netplan/aws-vmimport-netplan.yaml
+  echo "          route-metric: 100" >> /etc/netplan/aws-vmimport-netplan.yaml
+  echo "    $1:" >> /etc/netplan/aws-vmimport-netplan.yaml
+  echo "      dhcp4: yes" >> /etc/netplan/aws-vmimport-netplan.yaml
+  echo "      dhcp-identifier: mac" >> /etc/netplan/aws-vmimport-netplan.yaml
+  echo "      dhcp4-overrides:" >> /etc/netplan/aws-vmimport-netplan.yaml
+  echo "          use-routes: false" >> /etc/netplan/aws-vmimport-netplan.yaml
+  echo "          route-metric: 200" >> /etc/netplan/aws-vmimport-netplan.yaml
+
+  sudo netplan apply
+}
+
+setIptableRules()
+{
+  sudo iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP
+}
+
+secondInt=""
+
+createAndAttachManagementInterface()
+{
+  export AWS_DEFAULT_REGION=$(curl -sS http://169.254.169.254/latest/dynamic/instance-identity/document | grep region | awk -F\" '{print $4}')
+  INSTANCE_ID=$(curl -sS http://169.254.169.254/latest/meta-data/instance-id)
+  AZ=$(curl -sS http://169.254.169.254/latest/meta-data/placement/availability-zone)
+  VPCID=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query Reservations[0].Instances[0].VpcId --output text)
+  
+  if [ -z "$1" ]; then
+    while :
+    do
+      SECONDARY_SUBNET=$(aws ec2 describe-subnets --filters '[{"Name":"vpc-id","Values":["'$VPCID'"]},{"Name":"availability-zone","Values":["'$AZ'"]},{"Name":"tag:Name","Values":["*MessageBrokerSubnet*"]}]' --query Subnets[0].SubnetId --output text)
+      sleep 5
+      SECONDARY_SUBNET_STATUS=$(aws ec2 describe-subnets --subnet-ids $SECONDARY_SUBNET --query Subnets[0].State --output text)
+      if [ ${SECONDARY_SUBNET_STATUS} = "available" ]; then
+        echo "Control subnet is available"
+        break
+      fi
+      echo "Control subnet not yet available. Retrying..."
+    done
+  else
+    SECONDARY_SUBNET=$1
+  fi
+
+  if [ -z "$2" ]; then
+    while :
+    do
+      SECGROUP_ID=$(aws ec2 describe-security-groups --filters '[{"Name":"vpc-id","Values":["'$VPCID'"]},{"Name":"group-name","Values":["*MgmtInstanceSecurityGroup*"]}]' --query=SecurityGroups[0].GroupId --output text)
+      sleep 5
+      if [ ${#SECGROUP_ID} -ne 0 ]; then
+        echo "Security group is available"
+        break
+      fi
+      echo "Security group not yet available"
+    done
+  else
+    SECGROUP_ID=$2
+  fi
+
+  while :
+  do
+    ENI_ID=$(aws ec2 create-network-interface --subnet $SECONDARY_SUBNET --description 'Secondary ENI' --groups $SECGROUP_ID --query 'NetworkInterface.NetworkInterfaceId' --output text)
+    sleep 5
+    if [ ${#ENI_ID} -ne 0 ]; then
+      echo "2nd interface created"
+      break
+    fi
+    echo "2nd interface not yet created. Attempt again"
+  done
+
+  while :
+  do
+    ATTACHMENT_ID=$(aws ec2 attach-network-interface --network-interface-id $ENI_ID --instance-id $INSTANCE_ID --device-index 1 --output text)
+    sleep 5
+    if [ ${#ATTACHMENT_ID} -ne 0 ]; then
+      echo "2nd interface attached"
+      break
+    fi
+    echo "2nd interface not yet attached. Attempt again"
+  done
+
+  aws ec2 modify-network-interface-attribute --network-interface-id $ENI_ID --attachment AttachmentId=$ATTACHMENT_ID,DeleteOnTermination=true --output text
+  echo $AWS_DEFAULT_REGION $INSTANCE_ID $AZ $VPCID $SECONDARY_SUBNET $SECGROUP_ID $ENI_ID $ATTACHMENT_ID
+  getNewInterfaceName $ENI_ID
+}
+
+getNewInterfaceName()
+{
+  while :
+  do  
+    newInterfaceMac=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query Reservations[0].Instances[0].NetworkInterfaces --output text | grep $1 | awk '{ print $4}')
+    sleep 5
+    if [ ${#newInterfaceMac} -ne 0 ]; then
+      echo "New interface's Mac Address assigned"
+      break
+    fi
+    echo "New interface's Mac Address not yet assigned. Retrying..."
+  done
+
+  while :
+  do
+    newInterface=`ip -br link | awk '$3 ~ /'$newInterfaceMac'/ {print $1}'`
+    if [ -z "$newInterface" ]
+    then
+      # After attaching the interface, it is not immidiately visible from inside ec2. Need periodic check
+      echo "Discovered new interface is empty. sleeping for 1 sec"
+      sleep 1
+    else
+      secondInt=$newInterface
+      break
+    fi
+  done
+}
+
+#=========================================================================================
+# MAIN Section
+#=========================================================================================
+sudo usermod -aG sudo cyperf
+current_time=$(date "+%Y.%m.%d-%H.%M.%S")
+echo "$0 start time: $current_time"
+
+echo "Setting iptables rule"
+setIptableRules
+
+echo "Extract interface name"
+intName=`basename -a /sys/class/net/* | grep -v "lo" | sort | uniq -u`
+echo "List of interface available $intName"
+
+if [ "$IS_BEHIND_ALB" = 'true' ]; then
+  # First interface is test, second interface is management
+  firstInt=`echo $intName | awk '{split($0,a," "); print a[1]}'`
+  echo "Test interface name $firstInt"
+
+  echo "Create and attached management interface"
+  createAndAttachManagementInterface $MANAGEMENT_SUBNET $MANAGEMENT_SECURITY_GROUP
+
+  # Second interface has been discovered and assigned from getNewInterfaceName
+  echo "secondInt = $secondInt"
+  echo "Management interface name $secondInt"
+
+  # Waiting for the second interface to be up
+  while :
+  do
+    #intName=`basename -a /sys/class/net/* | grep -v "lo" | sort | uniq -u`
+    #secondInt=`echo $intName | awk '{split($0,a," "); print a[2]}'`
+    #var1=`ip a | grep -w $secondInt`
+    if [ ${#secondInt} -ne 0 ]; then
+      echo "$secondInt added"
+      echo "dhclient $secondInt"
+      dhclient $secondInt &> /dev/null
+      while :
+      do
+        ip_addr=`ip addr show $secondInt | grep -Po 'inet \K[\d.]+'`
+        if [ ${#ip_addr} -ne 0 ]; then
+          echo "$secondInt get IP address from dhcp"
+          break
+        fi
+        echo "$secondInt didn't get IP yet. Sleeping for 1 sec"
+        sleep 1
+      done
+      break
+    fi
+      echo "$secondInt not yet added. Sleeping for 1 sec"
+      sleep 1
+  done
+  
+  #disabling the cloud-init & remove default netplan config
+  rm /etc/netplan/*.yaml
+  mkdir -p /etc/cloud/cloud.cfg.d
+  touch /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+  echo "network: {config: disabled}" > /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+  
+  echo "Create netplan"
+  creatAndApplyNetplan $firstInt $secondInt
+
+  # Wait for the management interface getting IP address before assigning Controller IP.
+  # Otherwise, portmanager  will not be restarted after setting controller 
+  waitForInterfaceIPv4Assignment $management_interface
+
+  echo "Set Controller IP, Test interface and Management interface"
+  setControllerIpAndInterfaces $CONTROLER_IP $firstInt $secondInt
+else
+  # First interface is management, second interface is test
+  firstInt=`echo $intName | awk '{split($0,a," "); print a[1]}'`
+  echo "Management interface name $firstInt"
+
+  secondInt=`echo $intName | awk '{split($0,a," "); print a[2]}'`
+  echo "Test interface name $secondInt"
+
+  #disabling the cloud-init & remove default netplan config
+  rm /etc/netplan/*.yaml
+  mkdir -p /etc/cloud/cloud.cfg.d
+  touch /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+  echo "network: {config: disabled}" > /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+
+  echo "Create netplan"
+  creatAndApplyNetplan $secondInt $firstInt
+  
+  # Wait for the management interface getting IP address before assigning Controller IP.
+  # Otherwise, portmanager  will not be restarted after setting controller
+  echo "Waiting for ip address assignment of manaagement interface"
+  waitForInterfaceIPv4Assignment $firstInt
+
+  echo "Waiting for ip address assignment of test interface"
+  waitForInterfaceIPv4Assignment $secondInt
+
+  echo "Set Controller IP, Test interface and Management interface"
+  setControllerIpAndInterfaces $CONTROLER_IP $secondInt $firstInt 300
+fi
+
+current_time=$(date "+%Y.%m.%d-%H.%M.%S")
+echo "$0 end time: $current_time"
