@@ -53,5 +53,6 @@ resource "aws_instance" "aws_mdw" {
         cpu_credits = "unlimited"
     }
 
+    user_data = var.mdw_init
     key_name = var.aws_auth_key
 }

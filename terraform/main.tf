@@ -4,6 +4,21 @@ provider "aws" {
   token = var.aws_session_token
   region = var.aws_region
 }
+
+provider "tls" {
+  # No configuration required for the TLS provider
+}
+
+resource "tls_private_key" "cyperf" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+resource "aws_key_pair" "generated_key" {
+  key_name   = "${var.aws_stack_name}-generated-key"
+  public_key = tls_private_key.cyperf.public_key_openssh
+}
+
 data "aws_availability_zones" "available" {}
 locals{
     selected_az = data.aws_availability_zones.available.names[0]
@@ -15,6 +30,12 @@ locals{
     srv_agent_tag           = "serveragent-awsfw"
     cli_agent_tag_pan       = "clientagent-panfw"
     srv_agent_tag_pan       = "serveragent-panfw"
+    mdw_init = <<-EOF
+        #! /bin/bash
+        echo "${tls_private_key.cyperf.public_key_openssh}" >> /home/cyperf/.ssh/authorized_keys
+        chown cyperf: /home/cyperf/.ssh/authorized_keys
+        chmod 0600 /home/cyperf/.ssh/authorized_keys
+    EOF
     agent_init_cli = <<-EOF
         #! /bin/bash
         sudo chmod 777 /var/log/
@@ -530,6 +551,7 @@ module "mdw" {
     aws_owner = var.aws_owner
     aws_auth_key = var.aws_auth_key
     aws_mdw_machine_type = var.aws_mdw_machine_type
+    mdw_init = local.mdw_init
 }
 
 ####### Agents for awsfw #######
@@ -696,6 +718,10 @@ output "license_server" {
   value = var.aws_license_server
 }
 
+output "private_key_pem" {
+  value     = tls_private_key.cyperf.private_key_pem
+  sensitive = true
+}
 
 output "mdw_detail"{
   value = {
