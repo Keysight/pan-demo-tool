@@ -19,7 +19,7 @@ aws_access_key_id="XXXXXXXXXXXXX"
 aws_secret_access_key="XXXXXXXXXXXXXXX"
 aws_session_token="XXXXXXXX"
 aws_auth_key="<name of AWS key pair for SSH access>"
-aws_allowed_cidr=["<enter your public IP here>"]
+aws_allowed_cidr=["<enter the subnet you want to allow for accessing the controller>"]
 aws_license_server="<IP or hostname of CyPerf license server>"
 ```
 
