@@ -392,6 +392,15 @@ resource "aws_security_group_rule" "aws_cyperf_agent_ingress3" {
   cidr_blocks       = [var.aws_main_cidr]
   security_group_id = aws_security_group.aws_agent_security_group.id
 }
+resource "aws_security_group_rule" "aws_cyperf_agent_ingress4" {
+  type              = "ingress"
+  from_port         = 25
+  to_port           = 25
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  ipv6_cidr_blocks  = ["::/128"]
+  security_group_id = aws_security_group.aws_agent_security_group.id
+}
 resource "aws_security_group_rule" "aws_cyperf_agent_egress" {
   type              = "egress"
   from_port         = 0
