@@ -43,7 +43,7 @@ variable "panfw_version" {
 
 variable "panfw_ami_name" {
   type        = string
-  default     = "PA-VM-AWS-11.2.3-h3-f1260463-68e1-4bfb-bf2e-075c2664c1d7"
+  default     = "PA-VM-AWS-11.2.5-f1260463-68e1-4bfb-bf2e-075c2664c1d7"
   description = "AMI name for the pan fw"
 }
 
