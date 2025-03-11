@@ -20,8 +20,11 @@ resource "aws_key_pair" "generated_key" {
 }
 
 data "aws_availability_zones" "available" {}
+data "aws_caller_identity" "current" {}
+
 locals{
     selected_az = data.aws_availability_zones.available.names[0]
+    current_account_id = data.aws_caller_identity.current.account_id
     stackname_lowercase_hypn = replace(lower(var.aws_stack_name),"_", "-")
     firewall_cidr = concat(var.aws_allowed_cidr,[var.aws_main_cidr])
     options_tag             = "MANUAL"
@@ -665,43 +668,179 @@ resource "aws_networkfirewall_firewall" "aws-ngfw" {
     subnet_id = aws_subnet.aws_firewall_subnet.id
   }
 }
-
 resource "aws_networkfirewall_firewall_policy" "aws-ngfw" {
   name = "${local.stackname_lowercase_hypn}-aws-ngfw-firewall-policy"
   firewall_policy {
-      stateful_rule_group_reference {
-        resource_arn = aws_networkfirewall_rule_group.aws-ngfw.arn
-    }
-    stateless_fragment_default_actions = ["aws:pass"]    
+
+      policy_variables {
+        rule_variables {
+          key = "HOME_NET"
+          ip_set {
+            definition = [var.aws_cli_test_cidr]
+          }
+        }
+      }
+
+      #stateful_rule_group_reference {
+        #resource_arn = aws_networkfirewall_rule_group.aws-ngfw.arn
+      #}
+
+      stateless_rule_group_reference {
+        resource_arn = aws_networkfirewall_rule_group.aws-ngfw-stateless.arn
+        priority     = 1
+     }
+
+  stateful_engine_options {
+    rule_order = "STRICT_ORDER"
+  }
+
+  stateful_rule_group_reference {
+    priority = 1
+    resource_arn = "arn:aws:network-firewall:${var.aws_region}:aws-managed:stateful-rulegroup/ThreatSignaturesDoSStrictOrder"
+  }
+
+  stateful_rule_group_reference {
+    priority = 2
+    resource_arn = "arn:aws:network-firewall:${var.aws_region}:aws-managed:stateful-rulegroup/AbusedLegitMalwareDomainsStrictOrder"
+  }
+
+  stateful_rule_group_reference {
+    priority = 3
+    resource_arn = "arn:aws:network-firewall:${var.aws_region}:aws-managed:stateful-rulegroup/BotNetCommandAndControlDomainsStrictOrder"
+  }
+
+  stateful_rule_group_reference {
+    priority = 4
+    resource_arn = "arn:aws:network-firewall:${var.aws_region}:aws-managed:stateful-rulegroup/AbusedLegitBotNetCommandAndControlDomainsStrictOrder"
+  }
+
+  stateful_rule_group_reference {
+    priority = 5
+    resource_arn = "arn:aws:network-firewall:${var.aws_region}:aws-managed:stateful-rulegroup/MalwareDomainsStrictOrder"
+  }
+
+  stateful_rule_group_reference {
+    priority = 6
+    resource_arn = "arn:aws:network-firewall:${var.aws_region}:aws-managed:stateful-rulegroup/ThreatSignaturesIOCStrictOrder"
+  }
+
+  stateful_rule_group_reference {
+    priority = 7
+    resource_arn = "arn:aws:network-firewall:${var.aws_region}:aws-managed:stateful-rulegroup/ThreatSignaturesPhishingStrictOrder"
+  }
+
+  stateful_rule_group_reference {
+    priority = 8
+    resource_arn = "arn:aws:network-firewall:${var.aws_region}:aws-managed:stateful-rulegroup/ThreatSignaturesBotnetWebStrictOrder"
+  }
+
+  stateful_rule_group_reference {
+    priority = 9
+    resource_arn = "arn:aws:network-firewall:${var.aws_region}:aws-managed:stateful-rulegroup/ThreatSignaturesEmergingEventsStrictOrder"
+  }
+
+  stateful_rule_group_reference {
+    priority = 10
+    resource_arn = "arn:aws:network-firewall:${var.aws_region}:aws-managed:stateful-rulegroup/ThreatSignaturesMalwareWebStrictOrder"
+  }
+
+  stateful_rule_group_reference {
+    priority = 11
+    resource_arn = "arn:aws:network-firewall:${var.aws_region}:aws-managed:stateful-rulegroup/ThreatSignaturesExploitsStrictOrder"
+  }
+
+  stateful_rule_group_reference {
+    priority = 12
+    resource_arn = "arn:aws:network-firewall:${var.aws_region}:aws-managed:stateful-rulegroup/ThreatSignaturesWebAttacksStrictOrder"
+  }
+
+  stateful_rule_group_reference {
+    priority = 13
+    resource_arn =  "arn:aws:network-firewall:${var.aws_region}:aws-managed:stateful-rulegroup/ThreatSignaturesScannersStrictOrder"
+  }
+
+  stateful_rule_group_reference {
+    priority = 14
+    resource_arn =  "arn:aws:network-firewall:${var.aws_region}:aws-managed:stateful-rulegroup/ThreatSignaturesBotnetStrictOrder"
+  }
+
+  stateful_rule_group_reference {
+    priority = 15
+    resource_arn =  "arn:aws:network-firewall:${var.aws_region}:aws-managed:stateful-rulegroup/ThreatSignaturesMalwareStrictOrder"
+  }
+
+  stateful_rule_group_reference {
+    priority = 16
+    resource_arn =  "arn:aws:network-firewall:${var.aws_region}:aws-managed:stateful-rulegroup/ThreatSignaturesMalwareMobileStrictOrder"
+  }
+
+  stateful_rule_group_reference {
+    priority = 17
+    resource_arn =   "arn:aws:network-firewall:${var.aws_region}:aws-managed:stateful-rulegroup/ThreatSignaturesBotnetWindowsStrictOrder"
+  }
+
+  stateful_rule_group_reference {
+    priority = 18
+    resource_arn =   "arn:aws:network-firewall:${var.aws_region}:aws-managed:stateful-rulegroup/ThreatSignaturesSuspectStrictOrder"
+  }
+
+  stateful_rule_group_reference {
+    priority = 19
+    resource_arn =   "arn:aws:network-firewall:${var.aws_region}:aws-managed:stateful-rulegroup/ThreatSignaturesFUPStrictOrder"
+  }
+  
+# Not adding ThreatSignaturesMalwareCoinminingStrictOrder because of over limit.
+
+    stateless_fragment_default_actions = ["aws:forward_to_sfe"]    
     stateless_default_actions = ["aws:forward_to_sfe"]
+    stateful_default_actions = ["aws:alert_strict"]
   }
 }
 
-resource "aws_networkfirewall_rule_group" "aws-ngfw" {
-  capacity = 100
-  name     = "${local.stackname_lowercase_hypn}-aws-ngfw-rule-group"
-  type     = "STATEFUL"
+resource "aws_networkfirewall_rule_group" "aws-ngfw-stateless" {
+  name     = "${local.stackname_lowercase_hypn}-aws-ngfw-rule-group-stateless"
+  capacity = 10
+  type     = "STATELESS"
+
   rule_group {
     rules_source {
-      stateful_rule {
-        action = "PASS"
-        header {
-          destination      = var.aws_srv_test_cidr
-          destination_port = "ANY"
-          direction        = "FORWARD"
-          protocol         = "TCP"
-          source           = var.aws_cli_test_cidr
-          source_port      = "ANY"
+      stateless_rules_and_custom_actions {
+        stateless_rule {
+          priority = 1
+          rule_definition {
+            actions = ["aws:forward_to_sfe"]
+            match_attributes {
+              source {
+                address_definition = var.aws_srv_test_cidr
+              }
+              destination {
+                address_definition = var.aws_cli_test_cidr
+              }
+              protocols = [6]  # TCP
+            }
+          }
         }
-        rule_option {
-          keyword  = "sid"
-          settings = ["1"]
+        stateless_rule {
+          priority = 2
+          rule_definition {
+            actions = ["aws:forward_to_sfe"]
+            match_attributes {
+              source {
+                address_definition = var.aws_cli_test_cidr
+              }
+              destination {
+                address_definition = var.aws_srv_test_cidr
+              }
+              protocols = [6]  # TCP
+            }
+          }
         }
       }
     }
   }
+
   tags = {
-    Tag1 = "cyperf-test-ngfw"
+    Name = "cyperf-test-ngfw-stateless"
   }
 }
 
