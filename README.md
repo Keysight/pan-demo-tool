@@ -22,6 +22,28 @@ aws_auth_key="<name of AWS key pair for SSH access>"
 aws_allowed_cidr=["<enter the subnet you want to allow for accessing the controller>"]
 aws_license_server="<IP or hostname of CyPerf license server>"
 ```
+# IAM role
+
+This script needs to create an IAM role with the policy below.
+This is required to upload and download from the newly created s3 bucket.
+Please note, that the AWS user must have the privilege to create an IAM role with the below policy.
+```
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Action": "s3:ListBucket",
+			"Effect": "Allow",
+			"Resource": "arn:aws:s3:::<bucket name>"
+		},
+		{
+			"Action": "s3:GetObject",
+			"Effect": "Allow",
+			"Resource": "arn:aws:s3:::<bucket name>/*"
+		}
+	]
+}
+```
 
 # Deploy the setup
 
