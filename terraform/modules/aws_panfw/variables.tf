@@ -43,13 +43,13 @@ variable "panfw_version" {
 
 variable "panfw_ami_name" {
   type        = string
-  default     = "PA-VM-AWS-11.2.5-f1260463-68e1-4bfb-bf2e-075c2664c1d7"
+  default     = "PA-VM-AWS-11.2.5-0825b781-215f-4686-8da2-b95275cc8dd0"
   description = "AMI name for the pan fw"
 }
 
 variable "panfw_product_code" {
   type        = string
-  default     = "e9yfvyj3uag5uo5j2hjikv74n"
+  default     = "hd44w1chf26uv4p52cdynb2o"
   description = "Product code from the AWS Marketplace for the PAN FW"
 }
 
