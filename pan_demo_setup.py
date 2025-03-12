@@ -241,6 +241,9 @@ class CyPerfUtils(object):
         local_folder = 'simple-ui'
         remote_folder = '/home/cyperf'
         ssh_user = 'cyperf'
+        print("Uploading simple UI files...")
+        total_files = len(os.listdir(local_folder))
+        file_num = 1
         for file_name in os.listdir(local_folder):
             local_file = os.path.join(local_folder, file_name)
             if os.path.isfile(local_file):
@@ -253,6 +256,7 @@ class CyPerfUtils(object):
                     f"{ssh_user}@{self.controller}:{remote_folder}"
                 ]
                 try:
+                    print(f"Uploading file {file_num}/{total_files}...")
                     subprocess.run(scp_command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     if file_name.endswith('.sh'):
                         chmod_command = [
@@ -267,10 +271,11 @@ class CyPerfUtils(object):
                             subprocess.run(chmod_command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                         except subprocess.CalledProcessError as chmod_error:
                             print(f"Failed to set +x for {local_file}. Error code: {chmod_error.returncode}")
+                    file_num += 1
                 except subprocess.CalledProcessError as scp_error:
                     print(f"Failed to copy {local_file}. Error code: {scp_error.returncode}")
                     # print(f"Error message:\n{scp_error.stderr.decode()}")
-        
+        print("Done uploading files, installing simple UI...")
         # Now call the script that patches the controller and switches to the simple UI
         patch_command = [
             "ssh",
