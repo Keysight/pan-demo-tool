@@ -843,7 +843,7 @@ resource "aws_networkfirewall_rule_group" "aws-ngfw-stateless" {
               destination {
                 address_definition = var.aws_cli_test_cidr
               }
-              protocols = [6]  # TCP
+              protocols = [0]  # ALL
             }
           }
         }
@@ -858,7 +858,7 @@ resource "aws_networkfirewall_rule_group" "aws-ngfw-stateless" {
               destination {
                 address_definition = var.aws_srv_test_cidr
               }
-              protocols = [6]  # TCP
+              protocols = [0]  # ALL
             }
           }
         }
