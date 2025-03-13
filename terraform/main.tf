@@ -5,6 +5,14 @@ provider "aws" {
   region = var.aws_region
 }
 
+provider "aws" {
+  access_key = var.aws_access_key_id
+  secret_key = var.aws_secret_access_key
+  token = var.aws_session_token
+  region = var.aws_region
+  alias = "s3access"
+}
+
 provider "tls" {
   # No configuration required for the TLS provider
 }
@@ -26,6 +34,8 @@ locals{
     selected_az = data.aws_availability_zones.available.names[0]
     current_account_id = data.aws_caller_identity.current.account_id
     stackname_lowercase_hypn = replace(lower(var.aws_stack_name),"_", "-")
+    current_timestamp = timestamp()
+    numeric_timestamp = formatdate("YYYYMMDDHHmmss", local.current_timestamp)
     firewall_cidr = concat(var.aws_allowed_cidr,[var.aws_main_cidr])
     options_tag             = "MANUAL"
     project_tag             = "CyPerf"
@@ -502,22 +512,30 @@ resource "aws_placement_group" "aws_placement_group" {
 ##### create s3 bucket #####
 
 resource "aws_s3_bucket" "pan_config_bucket" {
-  bucket = "${local.stackname_lowercase_hypn}-panfw-bootstrap"
+  provider = aws.s3access
+  bucket = "${local.stackname_lowercase_hypn}-panfw-bootstrap-${local.numeric_timestamp}"
+  force_destroy = true
 }
 
 resource "aws_s3_object" "pan_config_file" {
+  depends_on = [aws_s3_bucket.pan_config_bucket]
+  provider = aws.s3access
   bucket = aws_s3_bucket.pan_config_bucket.bucket
   key    = "config/bootstrap.xml"
   source = "pan_config/bootstrap.xml"
 }
 
 resource "aws_s3_object" "pan_config_file1" {
+  depends_on = [aws_s3_bucket.pan_config_bucket]
+  provider = aws.s3access
   bucket = aws_s3_bucket.pan_config_bucket.bucket
   key    = "config/init-cfg.txt"
   source = "pan_config/init-cfg.txt"
 }
 
 resource "aws_s3_object" "appsec_init_file" {
+  depends_on = [aws_s3_bucket.pan_config_bucket]
+  provider = aws.s3access
   bucket = aws_s3_bucket.pan_config_bucket.bucket
   key    = "init/Appsec_init_s3"
   source = "init_script/Appsec_init_s3"
