@@ -843,7 +843,7 @@ resource "aws_networkfirewall_rule_group" "aws-ngfw-stateless" {
               destination {
                 address_definition = var.aws_cli_test_cidr
               }
-              protocols = [0]  # ALL
+              protocols =  [0]   # All protocols
             }
           }
         }
@@ -858,7 +858,7 @@ resource "aws_networkfirewall_rule_group" "aws-ngfw-stateless" {
               destination {
                 address_definition = var.aws_srv_test_cidr
               }
-              protocols = [0]  # ALL
+              protocols =  [0]  # All protocols
             }
           }
         }
@@ -868,6 +868,24 @@ resource "aws_networkfirewall_rule_group" "aws-ngfw-stateless" {
 
   tags = {
     Name = "cyperf-test-ngfw-stateless"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "aws-ngfw-log-grp" {
+  name              = "/aws/network-firewall/logs"
+  retention_in_days = 30
+}
+
+resource "aws_networkfirewall_logging_configuration" "aws-ngfw-cw-log-config" {
+  firewall_arn = aws_networkfirewall_firewall.aws-ngfw.arn
+  logging_configuration {
+    log_destination_config {
+      log_destination = {
+        logGroup = aws_cloudwatch_log_group.aws-ngfw-log-grp.name
+      }
+      log_destination_type = "CloudWatchLogs"
+      log_type             = "ALERT"
+    }
   }
 }
 
