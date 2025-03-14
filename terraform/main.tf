@@ -843,7 +843,7 @@ resource "aws_networkfirewall_rule_group" "aws-ngfw-stateless" {
               destination {
                 address_definition = var.aws_cli_test_cidr
               }
-              protocols =  [0]   # All protocols
+              #protocols =  [0]   # All protocols
             }
           }
         }
@@ -858,7 +858,7 @@ resource "aws_networkfirewall_rule_group" "aws-ngfw-stateless" {
               destination {
                 address_definition = var.aws_srv_test_cidr
               }
-              protocols =  [0]  # All protocols
+              #protocols =  [0]  # All protocols
             }
           }
         }
@@ -872,7 +872,7 @@ resource "aws_networkfirewall_rule_group" "aws-ngfw-stateless" {
 }
 
 resource "aws_cloudwatch_log_group" "aws-ngfw-log-grp" {
-  name              = "/aws/network-firewall/logs"
+  name              = "/aws/network-firewall/logs/${local.numeric_timestamp}"
   retention_in_days = 30
 }
 
