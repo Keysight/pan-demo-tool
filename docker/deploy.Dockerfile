@@ -10,12 +10,14 @@ WORKDIR /pan-demo
 RUN python3 -m venv /pan-demo/py3 && \
     . /pan-demo/py3/bin/activate && \
     pip install --no-cache --upgrade pip setuptools wheel && \
-    pip install --no-cache -U cyperf==6.0.3
+    pip install --no-cache -U -r requirements.txt
 RUN wget -P ./simple-ui https://artifactorylbj.it.keysight.com:443/artifactory/generic-local-wap/pan-demo-tool/simple-ui.tar
 RUN wget -P ./simple-ui https://artifactorylbj.it.keysight.com:443/artifactory/generic-local-wap/pan-demo-tool/rest-stats-service-patch.tar
 RUN wget -P ./simple-ui https://artifactorylbj.it.keysight.com:443/artifactory/generic-local-wap/pan-demo-tool/pan-demo-tool-report.mrt
 COPY . .
+COPY host-certs/*.crt /usr/local/share/ca-certificates
 # Get the simple UI and any other patches needed for MDW and make sure they are all in the simple-ui folder
 RUN chmod +x ./entrypoint.sh
 RUN mkdir -p /temp/terraform
+RUN update-ca-certificates
 ENTRYPOINT ["./entrypoint.sh"]

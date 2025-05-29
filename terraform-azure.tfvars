@@ -1,0 +1,12 @@
+azure_stack_name="<short name for your setup>"
+azure_location="eastus"
+azure_client_id="XXXXXXXXXXXXX"
+azure_client_secret="XXXXXXXXXXXXXXX"
+azure_tenant_id="XXXXXXXXXXXXXXX"
+azure_subscription_id="XXXXXXXXXXXXXXX"
+azure_auth_key="<name of Azure key pair for SSH access>"
+azure_allowed_cidr=["<enter your public IP here>"]
+azure_license_server="<IP or hostname of CyPerf license server>"
+tag_ccoe-app="XXXXX"
+tag_ccoe-group="XXXX"
+tag_UserID="XXXX"
