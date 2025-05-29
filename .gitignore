@@ -1,2 +1,6 @@
 *.tar
+*.zip
 terraform-state/
+publish/
+host-certs/*.crt
+host-certs/*.pem

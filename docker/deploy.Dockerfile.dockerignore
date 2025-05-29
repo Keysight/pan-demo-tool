@@ -3,6 +3,7 @@
 terraform-state
 terraform-state/**/*
 *.tfvars
+*.zip
 pan_demo_setup.tar
 publish/**/*
 docker/*
