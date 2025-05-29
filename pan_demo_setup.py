@@ -294,7 +294,6 @@ class CyPerfUtils(object):
 class Deployer(object):
     def __init__(self):
         self.terraform_dir             = './terraform'
-        self.terraform_state_dir       = './terraform-state'
 
         self.controller_admin_user     = 'admin'
         self.controller_admin_password = 'CyPerf&Keysight#1'
@@ -393,7 +392,13 @@ class Deployer(object):
                             f'{self.terraform_state_dir}/{tf_state_file}'],
                            check=False)
 
-    def initialize(self, args):
+    def initialize(self, args, cloud):
+        if cloud == 'aws':
+            self.terraform_state_dir = './terraform-state-aws'
+            self.copy_aws_files()
+        elif cloud == 'azure':
+            self.terraform_state_dir = './terraform-state-azure'
+            self.copy_azure_files()
         self.terraform_initialize()
 
     def _do_accept_eula_interactively(self):
@@ -402,6 +407,20 @@ class Deployer(object):
                 return False
 
         return True
+
+    def copy_aws_files(self):
+        subprocess.run(['cp', 'main-aws.tf', f'{self.terraform_dir}/main.tf'])
+        subprocess.run(['cp', 'variables-aws.tf', f'{self.terraform_dir}/variables.tf'])
+        subprocess.run(['cp', '-R', 'pan_config_aws', f'{self.terraform_dir}/pan_config'])
+        subprocess.run(['cp', f'{self.terraform_state_dir}/terraform-aws.tfvars',
+                              f'{self.terraform_state_dir}/terraform.tfvars'])
+
+    def copy_azure_files(self):
+        subprocess.run(['cp', 'main-azure.tf', f'{self.terraform_dir}/main.tf'])
+        subprocess.run(['cp', 'variables-azure.tf', f'{self.terraform_dir}/variables.tf'])
+        subprocess.run(['cp', '-R', 'pan_config_azure', f'{self.terraform_dir}/pan_config'])
+        subprocess.run(['cp', f'{self.terraform_state_dir}/terraform-azure.tfvars',
+                              f'{self.terraform_state_dir}/terraform.tfvars'])
 
     def deploy(self, args):
         self.terraform_deploy()
@@ -415,6 +434,9 @@ class Deployer(object):
         if 'panfw_detail' in output:
             pan_fw_client_gw = output['panfw_detail']['value']['panfw_cli_private_ip']
             pan_fw_server_gw = output['panfw_detail']['value']['panfw_srv_private_ip']
+        if 'azpanfw_detail' in output:
+            pan_fw_client_gw = output['azpanfw_detail']['value']['panfw_cli_private_ip']
+            pan_fw_server_gw = output['azpanfw_detail']['value']['panfw_srv_private_ip']
 
         if 'private_key_pem' in output:
 
@@ -427,11 +449,19 @@ class Deployer(object):
         #aws_nw_fw_ip = 
         utils.set_gateway (session, 'PAN-VM-FW-Client', pan_fw_client_gw)
         utils.set_gateway (session, 'PAN-VM-FW-Server', pan_fw_server_gw)
+        if 'azfw_client_agent_detail' in output:
+            cloudfw_client_agent_detail = output['azfw_client_agent_detail']['value']
+        if 'azfw_server_agent_detail' in output:
+            cloudfw_server_agent_detail = output['azfw_server_agent_detail']['value']
+        if 'awsfw_client_agent_detail' in output:
+            cloudfw_client_agent_detail = output['awsfw_client_agent_detail']['value']
+        if 'awsfw_server_agent_detail' in output:
+            cloudfw_server_agent_detail = output['awsfw_server_agent_detail']['value']
         agents = {
             'PAN-VM-FW-Client': [agent['private_ip'] for agent in output['panfw_client_agent_detail']['value']],
-            'AWS-NW-FW-Client': [agent['private_ip'] for agent in output['awsfw_client_agent_detail']['value']],
+            'AWS-NW-FW-Client': [agent['private_ip'] for agent in cloudfw_client_agent_detail],
             'PAN-VM-FW-Server': [agent['private_ip'] for agent in output['panfw_server_agent_detail']['value']],
-            'AWS-NW-FW-Server': [agent['private_ip'] for agent in output['awsfw_server_agent_detail']['value']]
+            'AWS-NW-FW-Server': [agent['private_ip'] for agent in cloudfw_server_agent_detail]
         }
         utils.assign_agents (session, agents)
 
@@ -458,8 +488,10 @@ def parse_cli_options():
                                                if you accept the CyPerf EULA: https://keysight.com/find/sweula.
                                                Alternatively you can accept through an interactive prompt.''',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--deploy',  help='Deploy all components necessary for a palo-alto firewall demonstration', action='store_true')
-    parser.add_argument('--destroy', help='Cleanup all components created for the last palto-alto firewall demonstration', action='store_true')
+    parser.add_argument('--deploy-aws',  help='Deploy all components necessary for a palo-alto firewall demonstration to AWS', action='store_true')
+    parser.add_argument('--deploy-azure',  help='Deploy all components necessary for a palo-alto firewall demonstration to Azure', action='store_true')
+    parser.add_argument('--destroy-aws', help='Cleanup all components created for the last palto-alto firewall demonstration in AWS', action='store_true')
+    parser.add_argument('--destroy-azure', help='Cleanup all components created for the last palto-alto firewall demonstration in Azure', action='store_true')
     parser.add_argument('--config-file', help='The name of the configuration file including path', default='./configurations/Palo-Alto-Firewall-Demo.zip')
     args = parser.parse_args()
 
@@ -469,12 +501,14 @@ def main():
     args     = parse_cli_options()
     deployer = Deployer()
 
-    deployer.initialize(args)
+    if args.deploy_aws or args.destroy_aws:
+        deployer.initialize(args, 'aws')
+    elif args.deploy_azure or args.destroy_azure:
+        deployer.initialize(args, 'azure')
 
-    if args.deploy:
+    if args.deploy_azure or args.deploy_aws:
         deployer.deploy(args)
-
-    if args.destroy:
+    elif args.destroy_aws or args.destroy_azure:
         deployer.destroy(args)
 
 if __name__ == "__main__":
