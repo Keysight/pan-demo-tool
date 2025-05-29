@@ -64,7 +64,7 @@ class CyPerfUtils(object):
                         self.added_license_servers.append(server)
                         print(f'License server {self.license_server} is already configured')
                         return
-                    license_api.delete_license_servers(str(server.id))
+                    license_api.delete_license_server(str(server.id))
                     waitTime = 5 # seconds
                     print (f'Waiting for {waitTime} seconds for the license server deletion to finish.')
                     time.sleep(waitTime) # How can I avoid this sleep????
@@ -78,7 +78,7 @@ class CyPerfUtils(object):
             newServers = license_api.create_license_servers(license_server_metadata=[lServer])
             while newServers:
                 for server in newServers:
-                    s = license_api.get_license_servers_by_id(str(server.id))
+                    s = license_api.get_license_server_by_id(str(server.id))
                     if 'IN_PROGRESS' != s.connection_status:
                         newServers.remove(server)
                         self.added_license_servers.append(server)
@@ -282,7 +282,7 @@ class CyPerfUtils(object):
             "-i", key_file,
             "-o", "MACS=hmac-sha2-512",
             f"{ssh_user}@{self.controller}",
-            "./switch-to-simple-ui.sh"
+            "sudo ./switch-to-simple-ui.sh"
         ]
         try:
             subprocess.run(patch_command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
