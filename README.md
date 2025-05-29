@@ -90,6 +90,8 @@ pan_demo_setup.sh --destroy-azure
 
 After modifying any of the files, you can use the `public-build.sh` to build a new container. You will need to start from an initial Keysight-built `pan_demo_setup.tar` file as a base, that you will have to copy to the root of this repo.
 
+If your network uses MITM technologies to secure traffic, you may need to export the trusted certificates from your current system and import them into the container. To do this, you should be able to run `./export_certs.sh`, which will populate the `./host-certs` dir with all trusted certificates from your current system. 
+
 ## From inside Keysight network
 
 After modifying any of the files, you can use the `private-build.sh` to build a new container.

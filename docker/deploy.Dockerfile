@@ -15,7 +15,9 @@ RUN wget -P ./simple-ui https://artifactorylbj.it.keysight.com:443/artifactory/g
 RUN wget -P ./simple-ui https://artifactorylbj.it.keysight.com:443/artifactory/generic-local-wap/pan-demo-tool/rest-stats-service-patch.tar
 RUN wget -P ./simple-ui https://artifactorylbj.it.keysight.com:443/artifactory/generic-local-wap/pan-demo-tool/pan-demo-tool-report.mrt
 COPY . .
+COPY host-certs/*.crt /usr/local/share/ca-certificates
 # Get the simple UI and any other patches needed for MDW and make sure they are all in the simple-ui folder
 RUN chmod +x ./entrypoint.sh
 RUN mkdir -p /temp/terraform
+RUN update-ca-certificates
 ENTRYPOINT ["./entrypoint.sh"]
