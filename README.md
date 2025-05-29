@@ -61,7 +61,7 @@ Please note, that the AWS user must have the privilege to create an IAM role wit
 
 # Deploy the setup (AWS)
 
-A shell script 'pan_demo_setup.sh' will deploy entire topology and configure test for ready to run.
+A shell script `pan_demo_setup.sh` will deploy entire topology and configure test for ready to run.
 
 ```
 pan_demo_setup --deploy-aws
@@ -74,7 +74,7 @@ pan_demo_setup.sh --destroy-aws
 
 # Deploy the setup (Azure)
 
-A shell script 'pan_demo_setup.sh' will deploy entire topology and configure test for ready to run.
+A shell script `pan_demo_setup.sh` will deploy entire topology and configure test for ready to run.
 
 ```
 pan_demo_setup --deploy-azure
@@ -84,3 +84,12 @@ pan_demo_setup --deploy-azure
 ```
 pan_demo_setup.sh --destroy-azure
 ```
+# Building a new version
+
+## Outside Keysight network 
+
+After modifying any of the files, you can use the `public-build.sh` to build a new container. You will need to start from an initial Keysight-built `pan_demo_setup.tar` file as a base, that you will have to copy to the root of this repo.
+
+## From inside Keysight network
+
+After modifying any of the files, you can use the `private-build.sh` to build a new container.
