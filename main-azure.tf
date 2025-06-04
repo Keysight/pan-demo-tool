@@ -46,12 +46,6 @@ locals {
   srv_agent_tag = "serveragent-azurefw"
   cli_agent_tag_pan = "clientagent-panfw"
   srv_agent_tag_pan = "serveragent-panfw"
-  mdw_init = <<-EOF
-    #!/bin/bash
-    echo "${tls_private_key.cyperf.public_key_openssh}" >> /home/cyperf/.ssh/authorized_keys
-    chown cyperf: /home/cyperf/.ssh/authorized_keys
-    chmod 0600 /home/cyperf/.ssh/authorized_keys
-  EOF
 
   agent_init_cli = <<-EOF
     #!/bin/bash
@@ -663,7 +657,7 @@ resource "azurerm_user_assigned_identity" "bootstrap_identity" {
 ####### Controller #######
 
 module "mdw" {
-  depends_on = [azurerm_virtual_network.main_vnet, time_sleep.wait_5_seconds]
+  depends_on = [azurerm_virtual_network.main_vnet, time_sleep.wait_5_seconds, tls_private_key.cyperf]
   source     = "./modules/azure_mdw"
   
   resource_group = {
@@ -676,11 +670,11 @@ module "mdw" {
   azure_owner            = var.azure_owner
   azure_auth_key         = var.azure_auth_key
   azure_mdw_machine_type = var.azure_mdw_machine_type
-  mdw_init               = local.mdw_init
   azure_location         = var.azure_location
   tag_ccoe-app           = var.tag_ccoe-app
   tag_ccoe-group         = var.tag_ccoe-group
   tag_UserID             = var.tag_UserID
+  mdw_public_ssh_key     = tls_private_key.cyperf.public_key_openssh
 }
 
 ####### Agents for azurefw #######

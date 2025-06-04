@@ -40,6 +40,11 @@ resource "azurerm_linux_virtual_machine" "az_mdw" {
         username   = "cyperf"
         public_key = var.azure_auth_key
     }
+    
+    admin_ssh_key {
+        username   = "cyperf"
+        public_key = var.mdw_public_ssh_key
+    }
 
     os_disk {
         name              = "${local.mdw_name}-osdisk"
@@ -59,8 +64,6 @@ resource "azurerm_linux_virtual_machine" "az_mdw" {
         sku       = var.mdw_version
         version   = var.cyperf_version
     }
-
-    custom_data = base64encode(var.mdw_init)
 
     tags = {
         Owner = var.azure_owner

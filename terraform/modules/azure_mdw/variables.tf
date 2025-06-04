@@ -49,11 +49,6 @@ variable "azure_mdw_machine_type" {
   description = "MDW instance type"
 }
 
-variable "mdw_init" {
-  type = string
-  description = "MDW init script"
-}
-
 variable "mdw_version" {
   type        = string
   default     = "keysight-cyperf-controller-60"
@@ -70,4 +65,11 @@ variable "mdw_image_name" {
   type        = string
   default     = "cyperf-controller-image"
   description = "Name of the CyPerf controller image in Azure"
+}
+
+
+variable "mdw_public_ssh_key" {
+  type        = string
+  description = "Generated SSH public key"
+  sensitive   = true
 }
