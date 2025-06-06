@@ -9,6 +9,8 @@ All the necessary resources will be created from scratch, including Vnet, subnet
 - Linux box
 - git clone https://github.com/Keysight/pan-demo-tool.git
 - Install Docker Engine in your desired host platform if not already. Refer [Install Docker Engine Server](https://docs.docker.com/engine/install/#server) for more details.
+- Additionally, it is recommended to follow the post-install guide to enable Docker to run as a non-root user: [Linux post-installation steps for Docker Engine](https://docs.docker.com/engine/install/linux-postinstall/). If not, you will need to preface all following commands with `sudo`.
+- install `unzip` (e.g. `sudo apt install unzip`)
 - AWS CLI Credentials and Azure CLI Credentials.
 - update terraform-azure.tfvars flies with below parameters
 ```
@@ -61,10 +63,10 @@ Please note, that the AWS user must have the privilege to create an IAM role wit
 
 # Deploy the setup (AWS)
 
-A shell script `pan_demo_setup.sh` will deploy entire topology and configure test for ready to run.
+A shell script, `pan_demo_setup.sh`, will deploy the entire topology and configure a test that is ready for run.
 
 ```
-pan_demo_setup --deploy-aws
+pan_demo_setup.sh --deploy-aws
 ```
 # Destroy the setup (AWS)
 
@@ -74,10 +76,10 @@ pan_demo_setup.sh --destroy-aws
 
 # Deploy the setup (Azure)
 
-A shell script `pan_demo_setup.sh` will deploy entire topology and configure test for ready to run.
+A shell script, `pan_demo_setup.sh`, will deploy the entire topology and configure a test that is ready for run.
 
 ```
-pan_demo_setup --deploy-azure
+pan_demo_setup.sh --deploy-azure
 ```
 # Destroy the setup (Azure)
 
