@@ -2,14 +2,19 @@
 
 echo "Switching to regular CyPerf workflow ..."
 
-ORIGINAL_UI_VERSION=2.60.317-appsec
-ORIGINAL_REST_STATS_VERSION=1.0.14215-releasecyperf60
+ORIGINAL_UI_VERSION=2.70.306-appsec
+ORIGINAL_REST_STATS_VERSION=1.0.14933-releasecyperf70
 DOCKER_CMD=docker
+NERDCTL_CMD=nerdctl
+# Switch between Docker and containerd runtime
+CONTAINER_CMD=$NERDCTL_CMD
+
+export KUBECONFIG=/home/cyperf/.kube/config
 
 # Switch to full UI container
 if test -f simple-ui.tar; then
 	if test -f wap-ui-original.tar; then
-		$DOCKER_CMD load < wap-ui-original.tar
+		$CONTAINER_CMD load < wap-ui-original.tar
 	else
 		echo "    ... backup of full UI not found - optimistically continuing the restore process"
 	fi
@@ -26,7 +31,7 @@ fi
 # Undo patches
 if test -f rest-stats-service-patch.tar; then
 	if test -f rest-stats-service-original.tar; then
-		$DOCKER_CMD load < rest-stats-service-original.tar
+		$CONTAINER_CMD load < rest-stats-service-original.tar
 	else
 		echo "    ... backup of patches services not found - optimistically continuing the restore process"
 	fi

@@ -51,13 +51,13 @@ variable "azure_mdw_machine_type" {
 
 variable "mdw_version" {
   type        = string
-  default     = "keysight-cyperf-controller-60"
+  default     = "keysight-cyperf-controller-70"
   description = "Version for the CyPerf controller"
 }
 
 variable "cyperf_version" {
   type        = string
-  default     = "0.6.0"
+  default     = "0.7.0"
   description = "Version for the CyPerf controller"
 }
 

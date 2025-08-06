@@ -33,7 +33,7 @@ variable "mdw_init" {
 
 variable "mdw_version" {
   type        = string
-  default     = "keysight-cyperf-controller-6-0"
+  default     = "keysight-cyperf-controller-7-0"
   description = "Version for the cyperf controller"
 }
 
