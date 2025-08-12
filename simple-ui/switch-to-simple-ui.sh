@@ -9,7 +9,12 @@ NERDCTL_CMD=nerdctl
 # Switch between Docker and containerd runtime
 CONTAINER_CMD=$NERDCTL_CMD
 
-export KUBECONFIG=/home/cyperf/.kube/config
+if [[ -f /home/cyperf/.kube/config ]] ; then
+   export KUBECONFIG=/home/cyperf/.kube/config
+else
+   export KUBECONFIG=/etc/kubernetes/admin.conf
+fi
+
 
 # Update the PDF template
 if test -f pan-demo-tool-report.mrt; then
