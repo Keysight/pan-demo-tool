@@ -9,7 +9,11 @@ NERDCTL_CMD=nerdctl
 # Switch between Docker and containerd runtime
 CONTAINER_CMD=$NERDCTL_CMD
 
-export KUBECONFIG=/home/cyperf/.kube/config
+if [[ -f /home/cyperf/.kube/config ]] ; then
+   export KUBECONFIG=/home/cyperf/.kube/config
+else
+   export KUBECONFIG=/etc/kubernetes/admin.conf
+fi
 
 # Switch to full UI container
 if test -f simple-ui.tar; then
