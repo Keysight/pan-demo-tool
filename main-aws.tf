@@ -744,6 +744,9 @@ resource "aws_networkfirewall_firewall_policy" "aws-ngfw" {
   stateful_rule_group_reference {
     priority = 5
     resource_arn = "arn:aws:network-firewall:${var.aws_region}:aws-managed:stateful-rulegroup/MalwareDomainsStrictOrder"
+    override {
+      action = "DROP_TO_ALERT"
+    }
   }
 
   stateful_rule_group_reference {
