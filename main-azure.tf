@@ -317,6 +317,15 @@ resource "azurerm_route" "route_to_ngfw" {
   next_hop_in_ip_address = azurerm_firewall.azure-ngfw.ip_configuration[0].private_ip_address
 }
 
+resource "azurerm_route" "route_to_panfw" {
+  name                   = "${var.azure_stack_name}-route-to-panfw"
+  resource_group_name    = azurerm_resource_group.cyperfazuretest-rg.name
+  route_table_name       = azurerm_route_table.private_rt.name
+  address_prefix         = var.azure_srv_test_cidr_pan
+  next_hop_type          = "VirtualAppliance"
+  next_hop_in_ip_address = "${module.azpanfw.panfw_detail.panfw_cli_private_ip}"
+}
+
 resource "azurerm_route" "route_to_ngfw1" {
   name                   = "${var.azure_stack_name}-route-to-ngfw1"
   resource_group_name    = azurerm_resource_group.cyperfazuretest-rg.name
@@ -324,6 +333,15 @@ resource "azurerm_route" "route_to_ngfw1" {
   address_prefix         = var.azure_cli_test_cidr
   next_hop_type          = "VirtualAppliance"
   next_hop_in_ip_address = azurerm_firewall.azure-ngfw.ip_configuration[0].private_ip_address
+}
+
+resource "azurerm_route" "route_to_panfw1" {
+  name                   = "${var.azure_stack_name}-route-to-panfw1"
+  resource_group_name    = azurerm_resource_group.cyperfazuretest-rg.name
+  route_table_name       = azurerm_route_table.private_rt_srv.name
+  address_prefix         = var.azure_cli_test_cidr_pan
+  next_hop_type          = "VirtualAppliance"
+  next_hop_in_ip_address = "${module.azpanfw.panfw_detail.panfw_srv_private_ip}"
 }
 
 resource "azurerm_route" "route_igw_to_agent1" {

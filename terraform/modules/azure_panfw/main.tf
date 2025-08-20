@@ -34,7 +34,7 @@ resource "azurerm_network_interface" "az_panfw_cli_interface" {
     name                = "${var.azure_stack_name}-panfw-cli-interface"
     location            = var.azure_location
     resource_group_name = var.resource_group.resource_group_name
-
+    ip_forwarding_enabled = true
     ip_configuration {
         name                          = "primary"
         subnet_id                     = var.resource_group.client_subnet
@@ -53,7 +53,7 @@ resource "azurerm_network_interface" "az_panfw_srv_interface" {
     name                = "${var.azure_stack_name}-panfw-srv-interface"
     location            = var.azure_location
     resource_group_name = var.resource_group.resource_group_name
-
+    ip_forwarding_enabled = true
     ip_configuration {
         name                          = "primary"
         subnet_id                     = var.resource_group.server_subnet
