@@ -9,6 +9,9 @@ resource "aws_network_interface" "aws_mgmt_interface" {
         Name = "${var.aws_stack_name}-mgmt-interface"
         Project = var.tags.project_tag
         Options = var.tags.options_tag
+        ccoe-app = var.tags.tag_ccoe-app
+        ccoe-group = var.tags.tag_ccoe-group
+        UserID = var.tags.tag_UserID
     }
     source_dest_check = true
     subnet_id = var.resource_group.aws_ControllerManagementSubnet
@@ -21,6 +24,9 @@ resource "aws_network_interface" "aws_cli_test_interface" {
         Name = "${var.aws_stack_name}-cli-test-interface"
         Project = var.tags.project_tag
         Options = var.tags.options_tag
+        ccoe-app = var.tags.tag_ccoe-app
+        ccoe-group = var.tags.tag_ccoe-group
+        UserID = var.tags.tag_UserID
     }
     source_dest_check = true
     subnet_id = var.resource_group.aws_AgentTestSubnet
@@ -42,6 +48,9 @@ resource "aws_instance" "aws_cli_agent" {
         Name = local.cli_agent_name
         Project = var.tags.project_tag
         Options = var.tags.options_tag
+        ccoe-app = var.tags.tag_ccoe-app
+        ccoe-group = var.tags.tag_ccoe-group
+        UserID = var.tags.tag_UserID
     }
     ami           = data.aws_ami.agent_ami.image_id 
     instance_type = var.aws_agent_machine_type

@@ -6,6 +6,9 @@ resource "aws_network_interface" "aws_mdw_interface" {
     tags = {
         Owner = var.aws_owner
         Name = "${var.aws_stack_name}-mdw-mgmt-interface"
+        ccoe-app = var.tag_ccoe-app
+        ccoe-group = var.tag_ccoe-group
+        UserID = var.tag_UserID
     }
     source_dest_check = true
     subnet_id = var.resource_group.management_subnet
@@ -31,6 +34,9 @@ resource "aws_instance" "aws_mdw" {
     tags = {
         Owner = var.aws_owner
         Name = local.mdw_name
+        ccoe-app = var.tag_ccoe-app
+        ccoe-group = var.tag_ccoe-group
+        UserID = var.tag_UserID
     }
 
 
