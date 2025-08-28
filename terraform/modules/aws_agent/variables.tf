@@ -13,11 +13,13 @@ variable "tags" {
     aws_owner = string,
     project_tag = string,
     options_tag = string,
-    tag_ccoe-app = string,
-    tag_ccoe-group = string,
-    tag_UserID = string
   })
   description = "AWS tags"
+}
+
+variable "user_tags" {
+  type = map(string)
+  description = "dynamic key-value pairs"
 }
 
 variable "aws_stack_name" {
