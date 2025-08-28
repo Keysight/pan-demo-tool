@@ -2,32 +2,35 @@ locals{
     cli_agent_name = "${var.aws_stack_name}-${var.agent_role}-${var.agent_version}"
 }
 
-
 resource "aws_network_interface" "aws_mgmt_interface" {
-    tags = {
+    tags = merge( 
+     {
         Owner = var.tags.aws_owner
         Name = "${var.aws_stack_name}-mgmt-interface"
         Project = var.tags.project_tag
         Options = var.tags.options_tag
-        ccoe-app = var.tags.tag_ccoe-app
-        ccoe-group = var.tags.tag_ccoe-group
-        UserID = var.tags.tag_UserID
-    }
+      },
+      { 
+        for key, value in var.user_tags : key => value
+      }
+    )
     source_dest_check = true
     subnet_id = var.resource_group.aws_ControllerManagementSubnet
     security_groups = [var.resource_group.aws_agent_security_group]
 }
 
 resource "aws_network_interface" "aws_cli_test_interface" {
-    tags = {
+    tags = merge( 
+     {
         Owner = var.tags.aws_owner
         Name = "${var.aws_stack_name}-cli-test-interface"
         Project = var.tags.project_tag
         Options = var.tags.options_tag
-        ccoe-app = var.tags.tag_ccoe-app
-        ccoe-group = var.tags.tag_ccoe-group
-        UserID = var.tags.tag_UserID
-    }
+     },
+     {
+        for key, value in var.user_tags : key => value
+     }
+    )
     source_dest_check = true
     subnet_id = var.resource_group.aws_AgentTestSubnet
     security_groups = [var.resource_group.aws_agent_security_group]
@@ -43,15 +46,18 @@ data "aws_ami" "agent_ami" {
 }
 
 resource "aws_instance" "aws_cli_agent" {
-    tags = {
+
+    tags = merge(
+     {
         Owner = var.tags.aws_owner
         Name = local.cli_agent_name
         Project = var.tags.project_tag
         Options = var.tags.options_tag
-        ccoe-app = var.tags.tag_ccoe-app
-        ccoe-group = var.tags.tag_ccoe-group
-        UserID = var.tags.tag_UserID
-    }
+     },
+     {
+        for key, value in var.user_tags : key => value
+     }
+    )
     ami           = data.aws_ami.agent_ami.image_id 
     instance_type = var.aws_agent_machine_type
     iam_instance_profile = var.resource_group.instance_profile

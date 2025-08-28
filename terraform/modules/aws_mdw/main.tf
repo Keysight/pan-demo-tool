@@ -1,15 +1,16 @@
 locals{
     mdw_name = "${var.aws_stack_name}-controller-${var.mdw_version}"
 }
-
 resource "aws_network_interface" "aws_mdw_interface" {
-    tags = {
+    tags = merge(
+      {
         Owner = var.aws_owner
         Name = "${var.aws_stack_name}-mdw-mgmt-interface"
-        ccoe-app = var.tag_ccoe-app
-        ccoe-group = var.tag_ccoe-group
-        UserID = var.tag_UserID
-    }
+      },
+      {
+        for key, value in var.user_tags : key => value
+      }
+    )
     source_dest_check = true
     subnet_id = var.resource_group.management_subnet
     security_groups = [var.resource_group.security_group]
@@ -31,14 +32,15 @@ resource "aws_eip" "mdw_public_ip" {
 }
 
 resource "aws_instance" "aws_mdw" {
-    tags = {
+    tags = merge( 
+      {
         Owner = var.aws_owner
         Name = local.mdw_name
-        ccoe-app = var.tag_ccoe-app
-        ccoe-group = var.tag_ccoe-group
-        UserID = var.tag_UserID
-    }
-
+      },
+      {
+        for key, value in var.user_tags : key => value
+      }
+    )
 
     ami           = data.aws_ami.mdw_ami.image_id 
     instance_type = var.aws_mdw_machine_type

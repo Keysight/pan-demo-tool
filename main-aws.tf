@@ -594,9 +594,7 @@ module "mdw" {
     aws_auth_key = var.aws_auth_key
     aws_mdw_machine_type = var.aws_mdw_machine_type
     mdw_init = local.mdw_init
-    tag_ccoe-app           = var.tag_ccoe-app
-    tag_ccoe-group         = var.tag_ccoe-group
-    tag_UserID             = var.tag_UserID
+    user_tags = var.user_tags
 }
 
 ####### Agents for awsfw #######
@@ -614,10 +612,8 @@ module "clientagents" {
         project_tag = local.project_tag,
         aws_owner   = var.aws_owner,
         options_tag = local.options_tag,
-        tag_ccoe-app           = var.tag_ccoe-app,
-        tag_ccoe-group         = var.tag_ccoe-group,
-        tag_UserID             = var.tag_UserID
     }
+    user_tags = var.user_tags
     aws_stack_name = var.aws_stack_name
     aws_auth_key   = var.aws_auth_key
     aws_agent_machine_type = var.aws_agent_machine_type
@@ -639,10 +635,8 @@ module "serveragents" {
         project_tag = local.project_tag,
         aws_owner   = var.aws_owner,
         options_tag = local.options_tag,
-        tag_ccoe-app           = var.tag_ccoe-app,
-        tag_ccoe-group         = var.tag_ccoe-group,
-        tag_UserID             = var.tag_UserID
     }
+    user_tags = var.user_tags
     aws_stack_name = var.aws_stack_name
     aws_auth_key   = var.aws_auth_key
     aws_agent_machine_type = var.aws_agent_machine_type
@@ -665,10 +659,8 @@ module "clientagents-pan" {
         project_tag = local.project_tag,
         aws_owner   = var.aws_owner,
         options_tag = local.options_tag,
-        tag_ccoe-app           = var.tag_ccoe-app,
-        tag_ccoe-group         = var.tag_ccoe-group,
-        tag_UserID             = var.tag_UserID
     }
+    user_tags = var.user_tags
     aws_stack_name = var.aws_stack_name
     aws_auth_key   = var.aws_auth_key
     aws_agent_machine_type = var.aws_agent_machine_type
@@ -690,10 +682,8 @@ module "serveragents-pan" {
         project_tag = local.project_tag,
         aws_owner   = var.aws_owner,
         options_tag = local.options_tag,
-        tag_ccoe-app           = var.tag_ccoe-app,
-        tag_ccoe-group         = var.tag_ccoe-group,
-        tag_UserID             = var.tag_UserID
     }
+    user_tags = var.user_tags
     aws_stack_name = var.aws_stack_name
     aws_auth_key   = var.aws_auth_key
     aws_agent_machine_type = var.aws_agent_machine_type
@@ -924,9 +914,7 @@ module "panfw" {
     aws_auth_key = var.aws_auth_key
     aws_panfw_machine_type = var.aws_panfw_machine_type
     panfw_init_cli = local.panfw_init_cli
-    tag_ccoe-app           = var.tag_ccoe-app
-    tag_ccoe-group         = var.tag_ccoe-group
-    tag_UserID             = var.tag_UserID
+    user_tags = var.user_tags
 }
 
 ##### Output ######
@@ -983,5 +971,4 @@ output "panfw_client_agent_detail"{
     "private_ip" : x.agents_detail.private_ip
   }]
 }
-
 

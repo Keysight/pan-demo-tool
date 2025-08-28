@@ -6,6 +6,11 @@ variable "resource_group" {
   description = "AWS resource group where you want to deploy in"
 }
 
+variable "user_tags" {
+  type = map(string)
+  description = "dynamic key-value pairs"
+}
+
 variable "aws_stack_name" {
   type = string
   description = "Stack name, prefix for all resources"
@@ -14,24 +19,6 @@ variable "aws_stack_name" {
 variable "aws_owner" {
   type = string
   description = "Stack name, prefix for all resources"
-}
-
-variable "tag_ccoe-app" {
-  type = string
-  default = ""
-  description = "PAN mandetory tag ccoe-app"
-}
-
-variable "tag_ccoe-group" {
-  type = string
-  default = ""
-  description = "PAN mandetory tag ccoe-group"
-}
-
-variable "tag_UserID" {
-  type = string
-  default = ""
-  description = "PAN mandetory tag UserID"
 }
 
 variable "aws_auth_key" {

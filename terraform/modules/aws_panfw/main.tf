@@ -3,39 +3,45 @@ locals{
 }
 
 resource "aws_network_interface" "aws_panfw_interface" {
-    tags = {
+    tags = merge(
+      {
         Owner = var.aws_owner
         Name = "${var.aws_stack_name}-panfw-mgmt-interface"
-        ccoe-app = var.tag_ccoe-app
-        ccoe-group = var.tag_ccoe-group
-        UserID = var.tag_UserID
-    }
+      },
+      {
+        for key, value in var.user_tags : key => value
+      }
+    )
     source_dest_check = true
     subnet_id = var.resource_group.management_subnet
     security_groups = [var.resource_group.security_group]
 }
 
 resource "aws_network_interface" "aws_panfw_cli_interface" {
-    tags = {
+    tags = merge(
+      {
         Owner = var.aws_owner
         Name = "${var.aws_stack_name}-panfw-cli-interface"
-        ccoe-app = var.tag_ccoe-app
-        ccoe-group = var.tag_ccoe-group
-        UserID = var.tag_UserID
-    }
+      },
+      {
+        for key, value in var.user_tags : key => value
+      }
+    )
     source_dest_check = false
     subnet_id = var.resource_group.client_subnet
     security_groups = [var.resource_group.security_group_test]
 }
 
 resource "aws_network_interface" "aws_panfw_srv_interface" {
-    tags = {
+    tags = merge(
+      {
         Owner = var.aws_owner
         Name = "${var.aws_stack_name}-panfw-srv-interface"
-        ccoe-app = var.tag_ccoe-app
-        ccoe-group = var.tag_ccoe-group
-        UserID = var.tag_UserID
-    }
+      },
+      {
+        for key, value in var.user_tags : key => value
+      }
+    )
     source_dest_check = false
     subnet_id = var.resource_group.server_subnet
     security_groups = [var.resource_group.security_group_test]
@@ -61,14 +67,15 @@ resource "aws_eip" "panfw_public_ip" {
 }
 
 resource "aws_instance" "aws_panfw" {
-    tags = {
+    tags = merge(
+      {
         Owner = var.aws_owner
         Name = local.panfw_name
-        ccoe-app = var.tag_ccoe-app
-        ccoe-group = var.tag_ccoe-group
-        UserID = var.tag_UserID
-    }
-
+      },
+      {
+        for key, value in var.user_tags : key => value
+      }
+    )
 
     ami           = data.aws_ami.panfw_ami.image_id 
     instance_type = var.aws_panfw_machine_type

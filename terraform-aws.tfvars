@@ -9,3 +9,8 @@ aws_license_server="<IP or hostname of CyPerf license server>"
 tag_ccoe-app="XXXXX"
 tag_ccoe-group="XXXX"
 tag_UserID="XXXX"
+user_tags = {
+  tag_ccoe-app="XXXX"
+  tag_ccoe-group="XXXX"
+  tag_UserID="XXXX"
+}
