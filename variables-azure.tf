@@ -107,13 +107,13 @@ variable "azure_allowed_cidr" {
 
 variable "azure_mdw_machine_type" {
   type = string
-  default = "Standard_F16s_v2"
+  default = "Standard_F8s_v2"
   description = "MDW instance type"
 }
 
 variable "azure_agent_machine_type" {
   type = string
-  default = "Standard_F16s_v2"
+  default = "Standard_F4s_v2"
   description = "Agent machines instance type - Possible options: Standard_F4s_v2 / Standard_F16s_v2 / Standard_D48s_v4 / Standard_D48_v4"
 }
 
