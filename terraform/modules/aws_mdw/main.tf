@@ -45,6 +45,15 @@ resource "aws_instance" "aws_mdw" {
     ami           = data.aws_ami.mdw_ami.image_id 
     instance_type = var.aws_mdw_machine_type
     //placement_group = "${var.aws_stack_name}-pg-cluster"
+        
+    
+    root_block_device {
+      volume_size           = 100
+      volume_type           = "gp3"
+      iops                  = 3000      # Optional for gp3
+      throughput            = 125       # Optional for gp3
+      delete_on_termination = true
+    }
 
     ebs_block_device {
         device_name = "/dev/sda1"
