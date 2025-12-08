@@ -66,6 +66,7 @@ resource "aws_instance" "aws_cli_agent" {
     ebs_block_device {
         device_name = "/dev/sda1"
         volume_size = "8"
+        volume_type = "gp3"
         delete_on_termination = true
     }
 
