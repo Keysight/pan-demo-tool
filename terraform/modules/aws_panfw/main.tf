@@ -82,9 +82,19 @@ resource "aws_instance" "aws_panfw" {
     iam_instance_profile = var.resource_group.bootstrap_profile
     //placement_group = "${var.aws_stack_name}-pg-cluster"
 
+    
+    root_block_device {
+      volume_size           = 60
+      volume_type           = "gp3"
+      iops                  = 3000      # Optional for gp3
+      throughput            = 125       # Optional for gp3
+      delete_on_termination = true
+    }
+
     ebs_block_device {
         device_name = "/dev/sda1"
         volume_size = "100"
+        volume_type = "gp3"
         delete_on_termination = true
     }
 

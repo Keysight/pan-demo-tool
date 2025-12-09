@@ -62,10 +62,20 @@ resource "aws_instance" "aws_cli_agent" {
     instance_type = var.aws_agent_machine_type
     iam_instance_profile = var.resource_group.instance_profile
     //placement_group = "${var.aws_stack_name}-pg-cluster"
+   
+   
+    root_block_device {
+        volume_size           = 30
+        volume_type           = "gp3"
+        iops                  = 3000      # Optional for gp3
+        throughput            = 125       # Optional for gp3
+        delete_on_termination = true
+    }
 
     ebs_block_device {
         device_name = "/dev/sda1"
         volume_size = "8"
+        volume_type = "gp3"
         delete_on_termination = true
     }
 
