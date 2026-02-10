@@ -99,6 +99,7 @@ resource "azurerm_subnet" "management_subnet" {
   resource_group_name  = azurerm_resource_group.cyperfazuretest-rg.name
   virtual_network_name = azurerm_virtual_network.main_vnet.name
   address_prefixes     = [var.azure_mgmt_cidr]
+  service_endpoints    = ["Microsoft.Storage"]
 }
 
 resource "azurerm_subnet" "azure_agent_mgmt_subnet" {
@@ -148,6 +149,7 @@ resource "azurerm_subnet" "mgmt_firewall_subnet" {
   resource_group_name  = azurerm_resource_group.cyperfazuretest-rg.name
   virtual_network_name = azurerm_virtual_network.main_vnet.name
   address_prefixes     = [var.azure_mgmt_firewall_cidr]
+  service_endpoints    = ["Microsoft.Storage"]
 }
 
 ####### Route Tables #######
@@ -581,6 +583,17 @@ resource "azurerm_storage_account" "pan_config_storage" {
   location                 = var.azure_location
   account_tier             = "Standard"
   account_replication_type = "LRS"
+
+  # Network rules to restrict access (required by Azure policy)
+  network_rules {
+    default_action             = "Deny"
+    bypass                     = ["AzureServices"]
+    virtual_network_subnet_ids = [
+      azurerm_subnet.management_subnet.id,
+      azurerm_subnet.mgmt_firewall_subnet.id
+    ]
+  }
+
   tags = {
     Owner = var.azure_owner
     Name  = "${var.azure_stack_name}-storage-account"
