@@ -9,14 +9,23 @@
             <superuser>yes</superuser>
           </role-based>
         </permissions>
+        <public-key>c3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFCZ1FDaG1SV0lLRm5JQlE1Y0d3eVp4Z3FwbHdOc1hDR25SWUNjVjAvazh4dkVJTzJWaGtZT0J1bE1WUTQ4TG1IN1k3RUsyOVJmS1Q1TVdvM1Z1b0h6TmVHaUlwd1ZvNy8wc1ROVFRhUXR5NDlCeWVjc0tYUTlISFFCL0RVUEx5YWFGUFBqdXM3ZEs1bTJuUHNBU3hkTktXRVc5MGkwRmFjTFlwWjlIUUtWa0w2UUc2NVc5aEFVQXZZYVh2cFlkRjE5U0U0c3EvVVVTUTZjT1FqVUpvRTJKNGVoL25DSlpCMUpxbktOZ3poczVsQXZHMlMxNmtYSzhrWFkyZHJVQVk0STJrZFFSMWFLMVZiek5iN0FTNWR6SkZHcy8rcC82UXl5enlDbUs1ZzYzVDFKYXZHMVZyZnMwUVREcWcwQ2FnVTZJbjdJdDRlVSsvZEF6UmZaZXgxQzhqNkZRZUNXNGVqbm4vRzBDWEY0ajBmV3NGaWs4NXcxd21jSEh3bnpoUy9TRzUzRjhBcHFUbFhJVnhFK2tjNC80MWJIemgyZlEzWE1iVzNnZ1RNYUJRNHZhcklyNCtRMjBPRGdwZXIrRjI4TmF1dFFuV3ZVL2YwZ2NmazZzMWRVTWdWRGV2WGw2bnFQaEZkQm4ybjY2TEF1OW1DQjFXS0lscjBJS2QvbHA4Sld1d0U9Cg==</public-key>
       </entry>
       <entry name="__openconfig">
-        <phash>$5$hywhckuu$YOJ2THgK091PHk6L9MYFw3PzyW2vhSVFkDtYveaKTZ5</phash>
+        <phash>$5$cfxdqixf$6QEgAwZMyucydNtPbiYy3.wNMUuYrtrDz1pYVllHcZ8</phash>
         <permissions>
           <role-based>
             <deviceadmin>
               <member>localhost.localdomain</member>
             </deviceadmin>
+          </role-based>
+        </permissions>
+      </entry>
+      <entry name="cyperf">
+        <public-key>c3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFCZ1FDaG1SV0lLRm5JQlE1Y0d3eVp4Z3FwbHdOc1hDR25SWUNjVjAvazh4dkVJTzJWaGtZT0J1bE1WUTQ4TG1IN1k3RUsyOVJmS1Q1TVdvM1Z1b0h6TmVHaUlwd1ZvNy8wc1ROVFRhUXR5NDlCeWVjc0tYUTlISFFCL0RVUEx5YWFGUFBqdXM3ZEs1bTJuUHNBU3hkTktXRVc5MGkwRmFjTFlwWjlIUUtWa0w2UUc2NVc5aEFVQXZZYVh2cFlkRjE5U0U0c3EvVVVTUTZjT1FqVUpvRTJKNGVoL25DSlpCMUpxbktOZ3poczVsQXZHMlMxNmtYSzhrWFkyZHJVQVk0STJrZFFSMWFLMVZiek5iN0FTNWR6SkZHcy8rcC82UXl5enlDbUs1ZzYzVDFKYXZHMVZyZnMwUVREcWcwQ2FnVTZJbjdJdDRlVSsvZEF6UmZaZXgxQzhqNkZRZUNXNGVqbm4vRzBDWEY0ajBmV3NGaWs4NXcxd21jSEh3bnpoUy9TRzUzRjhBcHFUbFhJVnhFK2tjNC80MWJIemgyZlEzWE1iVzNnZ1RNYUJRNHZhcklyNCtRMjBPRGdwZXIrRjI4TmF1dFFuV3ZVL2YwZ2NmazZzMWRVTWdWRGV2WGw2bnFQaEZkQm4ybjY2TEF1OW1DQjFXS0lscjBJS2QvbHA4Sld1d0U9Cg==</public-key>
+        <permissions>
+          <role-based>
+            <superuser>yes</superuser>
           </role-based>
         </permissions>
       </entry>
@@ -82,6 +91,7 @@
         <scheduled>yes</scheduled>
       </report>
     </botnet>
+    <content-preview/>
   </shared>
   <devices>
     <entry name="localhost.localdomain">
@@ -387,7 +397,7 @@
             <threat-prevention>yes</threat-prevention>
             <region>americas</region>
           </device-telemetry>
-          <hostname>vmseries1</hostname>
+          <hostname>bmyneni-cy-panfw-11.2.5</hostname>
         </system>
         <setting>
           <config>
@@ -396,8 +406,9 @@
           <management>
             <hostname-type-in-syslog>FQDN</hostname-type-in-syslog>
             <initcfg>
-              <hostname>vmseries1</hostname>
-              <username>bmyneni</username>
+              <hostname>bmyneni-cy-panfw-11.2.5</hostname>
+              <username>cyperf</username>
+              <public-key>c3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFCZ1FDaG1SV0lLRm5JQlE1Y0d3eVp4Z3FwbHdOc1hDR25SWUNjVjAvazh4dkVJTzJWaGtZT0J1bE1WUTQ4TG1IN1k3RUsyOVJmS1Q1TVdvM1Z1b0h6TmVHaUlwd1ZvNy8wc1ROVFRhUXR5NDlCeWVjc0tYUTlISFFCL0RVUEx5YWFGUFBqdXM3ZEs1bTJuUHNBU3hkTktXRVc5MGkwRmFjTFlwWjlIUUtWa0w2UUc2NVc5aEFVQXZZYVh2cFlkRjE5U0U0c3EvVVVTUTZjT1FqVUpvRTJKNGVoL25DSlpCMUpxbktOZ3poczVsQXZHMlMxNmtYSzhrWFkyZHJVQVk0STJrZFFSMWFLMVZiek5iN0FTNWR6SkZHcy8rcC82UXl5enlDbUs1ZzYzVDFKYXZHMVZyZnMwUVREcWcwQ2FnVTZJbjdJdDRlVSsvZEF6UmZaZXgxQzhqNkZRZUNXNGVqbm4vRzBDWEY0ajBmV3NGaWs4NXcxd21jSEh3bnpoUy9TRzUzRjhBcHFUbFhJVnhFK2tjNC80MWJIemgyZlEzWE1iVzNnZ1RNYUJRNHZhcklyNCtRMjBPRGdwZXIrRjI4TmF1dFFuV3ZVL2YwZ2NmazZzMWRVTWdWRGV2WGw2bnFQaEZkQm4ybjY2TEF1OW1DQjFXS0lscjBJS2QvbHA4Sld1d0U9Cg==</public-key>
               <type>
                 <dhcp-client>
                   <send-hostname>yes</send-hostname>
@@ -935,6 +946,7 @@
                 <alert>
                   <member>artificial-intelligence</member>
                   <member>cryptocurrency</member>
+                  <member>high-risk</member>
                   <member>low-risk</member>
                   <member>medium-risk</member>
                   <member>newly-registered-domain</member>
@@ -947,7 +959,6 @@
                   <member>gambling</member>
                   <member>grayware</member>
                   <member>hacking</member>
-                  <member>high-risk</member>
                   <member>malware</member>
                   <member>phishing</member>
                   <member>questionable</member>
