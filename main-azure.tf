@@ -11,6 +11,11 @@ provider "tls" {
   # No configuration required for the TLS provider
 }
 
+# Get the public IP of the machine running Terraform
+data "http" "my_public_ip" {
+  url = "https://api.ipify.org"
+}
+
 resource "tls_private_key" "cyperf" {
   algorithm = "RSA"
   rsa_bits  = 4096
@@ -588,6 +593,7 @@ resource "azurerm_storage_account" "pan_config_storage" {
   network_rules {
     default_action             = "Deny"
     bypass                     = ["AzureServices"]
+    ip_rules                   = [chomp(data.http.my_public_ip.response_body)]
     virtual_network_subnet_ids = [
       azurerm_subnet.management_subnet.id,
       azurerm_subnet.mgmt_firewall_subnet.id
