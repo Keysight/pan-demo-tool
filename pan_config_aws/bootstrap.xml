@@ -9,10 +9,10 @@
             <superuser>yes</superuser>
           </role-based>
         </permissions>
-        <public-key>c3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFCQVFDdm5qNmYrVVVhOHdteWc5Y2wxUkc0MklqSVJyL0hITmQ3NTdKdjRxTGRWNWJObXYyRURTV00zK1ZsYlBDV21jaURycEQ5N2dhQ21aWGJpR2xOTUFhemVwUGZrY0NnUWRsdVkySmw5UFdOdUU3NG1IUU1nOEpRc1cvWDdFalR2cXFVbU9VUHFwMTJNRnFrVTRUMXh0TFg2RW1YZ1NqT0doTlZVbDhNbTJzMEg2WmppTnZyNVhkbU4yNkVjdUY0VUJoQ3RFNEtsTXdYUExjY0N6dHUrOGVsKzUxRVFjNnl3RjFKaHNKclpoZnkvVkwvczI1dHRBKzZqbFY4WU4zQURCdDlNbVlCME5qV1cxRm1JdEpzYlJvSTQxc0FLSEpkalVJWHpuYWtmUFRBU0lpVHRXUDdmeXA2VHpVVVRGUHZWTVZrNHZCUmpsVkk1OU1XYTZDNU04cFAgYmFsYS1vcmVnb24K</public-key>
+        <public-key>c3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFCQVFDWFB6SE1JczhGS1FsQ29GZUQ1clZZcmVVUlArMWlMYk9ETTNYNmNxTCtOeVY5SVhUNFVpRDZ0WGZwU2hnV2QzY2dla0ZvOHM3azFaN0ZRSXBmcXpmd2FjMGNCZlRBYXp1amZJcFhzcGNMU2UwL2JOWFZFRHlQeUZXalVVQ3FWdG93bVl5eTVBWlBkbnBNbE9GaEgrMG1XWEZadG9SaWVZdUNMYXhab2VqTU1YSGpra2hMOUdBNE5GZFhUQ0NDVWpRZ2hOWVJrRXNsamRDUGNaaG14R000eGVVMkRMUm8vcmkxMVE4K0ZvTkFKZXdSK1M2dnAvUlJBU1djL29kVVZDcnNvM0gvVzZHcjVjUWRoVnJpaC8rY0NLUTBRSUZ4Ry91cHNqTGNKN0E5Nm8rUXE2Z1JGeWE5V2drdVNmYXdQZlFtSEYwaXd2ZGV4dkFHN1Q0aGc1V2ogYm15bmVuaS11cy1lYXN0MQo=</public-key>
       </entry>
       <entry name="__openconfig">
-        <phash>$5$fhitttly$E8KtlSPpkMYcVehZFfir99jUVPGghOHVCfySkaHTb80</phash>
+        <phash>$5$fwsdysvp$Bhp59SqKRny2aQv1c738.u616oQZpSzlh/wZJriQHOB</phash>
         <permissions>
           <role-based>
             <deviceadmin>
@@ -83,13 +83,7 @@
         <scheduled>yes</scheduled>
       </report>
     </botnet>
-    <content-preview>
-      <application/>
-      <application-type>
-        <category/>
-        <technology/>
-      </application-type>
-    </content-preview>
+    <content-preview/>
   </shared>
   <devices>
     <entry name="localhost.localdomain">
@@ -389,7 +383,7 @@
                   <accept-dhcp-domain>no</accept-dhcp-domain>
                 </dhcp-client>
               </type>
-              <public-key>c3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFCQVFDdm5qNmYrVVVhOHdteWc5Y2wxUkc0MklqSVJyL0hITmQ3NTdKdjRxTGRWNWJObXYyRURTV00zK1ZsYlBDV21jaURycEQ5N2dhQ21aWGJpR2xOTUFhemVwUGZrY0NnUWRsdVkySmw5UFdOdUU3NG1IUU1nOEpRc1cvWDdFalR2cXFVbU9VUHFwMTJNRnFrVTRUMXh0TFg2RW1YZ1NqT0doTlZVbDhNbTJzMEg2WmppTnZyNVhkbU4yNkVjdUY0VUJoQ3RFNEtsTXdYUExjY0N6dHUrOGVsKzUxRVFjNnl3RjFKaHNKclpoZnkvVkwvczI1dHRBKzZqbFY4WU4zQURCdDlNbVlCME5qV1cxRm1JdEpzYlJvSTQxc0FLSEpkalVJWHpuYWtmUFRBU0lpVHRXUDdmeXA2VHpVVVRGUHZWTVZrNHZCUmpsVkk1OU1XYTZDNU04cFAgYmFsYS1vcmVnb24K</public-key>
+              <public-key>c3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFCQVFDWFB6SE1JczhGS1FsQ29GZUQ1clZZcmVVUlArMWlMYk9ETTNYNmNxTCtOeVY5SVhUNFVpRDZ0WGZwU2hnV2QzY2dla0ZvOHM3azFaN0ZRSXBmcXpmd2FjMGNCZlRBYXp1amZJcFhzcGNMU2UwL2JOWFZFRHlQeUZXalVVQ3FWdG93bVl5eTVBWlBkbnBNbE9GaEgrMG1XWEZadG9SaWVZdUNMYXhab2VqTU1YSGpra2hMOUdBNE5GZFhUQ0NDVWpRZ2hOWVJrRXNsamRDUGNaaG14R000eGVVMkRMUm8vcmkxMVE4K0ZvTkFKZXdSK1M2dnAvUlJBU1djL29kVVZDcnNvM0gvVzZHcjVjUWRoVnJpaC8rY0NLUTBRSUZ4Ry91cHNqTGNKN0E5Nm8rUXE2Z1JGeWE5V2drdVNmYXdQZlFtSEYwaXd2ZGV4dkFHN1Q0aGc1V2ogYm15bmVuaS11cy1lYXN0MQo=</public-key>
             </initcfg>
           </management>
         </setting>
@@ -886,6 +880,7 @@
                   <member>Cyperf</member>
                   <member>artificial-intelligence</member>
                   <member>cryptocurrency</member>
+                  <member>high-risk</member>
                   <member>newly-registered-domain</member>
                   <member>real-time-detection</member>
                 </alert>
@@ -896,7 +891,6 @@
                   <member>gambling</member>
                   <member>grayware</member>
                   <member>hacking</member>
-                  <member>high-risk</member>
                   <member>malware</member>
                   <member>medium-risk</member>
                   <member>nudity</member>

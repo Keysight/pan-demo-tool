@@ -492,7 +492,7 @@ def parse_cli_options():
     parser.add_argument('--deploy-azure',  help='Deploy all components necessary for a palo-alto firewall demonstration to Azure', action='store_true')
     parser.add_argument('--destroy-aws', help='Cleanup all components created for the last palto-alto firewall demonstration in AWS', action='store_true')
     parser.add_argument('--destroy-azure', help='Cleanup all components created for the last palto-alto firewall demonstration in Azure', action='store_true')
-    parser.add_argument('--config-file', help='The name of the configuration file including path', default='./configurations/Cloud Firewall Benchmarking Test.zip')
+    parser.add_argument('--config-file', help='The name of the configuration file including path', default='./configurations/Cloud Firewall Benchmarking.zip')
     args = parser.parse_args()
 
     return args
