@@ -43,6 +43,10 @@ data "aws_ami" "agent_ami" {
       name   = "product-code"
       values = [var.agent_product_code]
     }
+    filter {
+      name   = "name"
+      values = ["*7-0-3-807*"]
+    }
 }
 
 resource "aws_instance" "aws_cli_agent" {
