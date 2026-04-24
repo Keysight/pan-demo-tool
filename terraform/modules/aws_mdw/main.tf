@@ -23,6 +23,10 @@ data "aws_ami" "mdw_ami" {
       name   = "product-code"
       values = [var.mdw_product_code]
     }
+    filter {
+      name   = "name"
+      values = ["*1-0-14934*"]
+    }
 }
 
 resource "aws_eip" "mdw_public_ip" {
