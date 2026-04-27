@@ -52,13 +52,13 @@ variable "agent_init_cli" {
 
 variable "agent_version" {
   type        = string
-  default     = "keysight-cyperf-agent-7-0"
+  default     = "keysight-cyperf-agent-2600"
   description = "Version for the CyPerf agent"
 }
 
 variable "cyperf_version" {
   type        = string
-  default     = "0.7.0"
+  default     = "26.0.0"
   description = "Version for the CyPerf agent"
 }
 
