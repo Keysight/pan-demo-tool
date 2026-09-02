@@ -45,7 +45,7 @@ data "aws_ami" "agent_ami" {
     }
     filter {
       name   = "name"
-      values = ["*7-0-3-807*"]
+      values = ["*26-0-3-834*"]
     }
 }
 

@@ -2,8 +2,8 @@
 
 echo "Switching to simple UI ..."
 
-ORIGINAL_UI_VERSION=2.70.306-appsec
-ORIGINAL_REST_STATS_VERSION=1.0.14933-releasecyperf70
+ORIGINAL_UI_VERSION=2.2600.309-appsec
+ORIGINAL_REST_STATS_VERSION=1.0.16051-releasecyperf2600
 DOCKER_CMD=docker
 NERDCTL_CMD=nerdctl
 # Switch between Docker and containerd runtime
