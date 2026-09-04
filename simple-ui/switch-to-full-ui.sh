@@ -2,8 +2,6 @@
 
 echo "Switching to regular CyPerf workflow ..."
 
-ORIGINAL_UI_VERSION=2.2600.309-appsec
-ORIGINAL_REST_STATS_VERSION=1.0.16051-releasecyperf2600
 DOCKER_CMD=docker
 NERDCTL_CMD=nerdctl
 # Switch between Docker and containerd runtime
@@ -15,6 +13,10 @@ else
    export KUBECONFIG=/etc/kubernetes/admin.conf
 fi
 
+if test -f original-versions.env; then
+   . ./original-versions.env
+fi
+
 # Switch to full UI container
 if test -f simple-ui.tar; then
 	if test -f wap-ui-original.tar; then
@@ -23,6 +25,10 @@ if test -f simple-ui.tar; then
 		echo "    ... backup of full UI not found - optimistically continuing the restore process"
 	fi
 	echo "    ... reverting to full UI"
+	echo "    ... restoring wapui configmap and ingress to /cyperf base path"
+	kubectl -n keysight-wap patch configmap wapui-configmap --type merge -p "$(kubectl -n keysight-wap get configmap wapui-configmap -o json | jq -c '{data: {"config.json": (.data."config.json" | sub("\"appBasePath\": *\"/\""; "\"appBasePath\": \"/cyperf\""))}}')"
+	WAPUI_INGRESS=$(kubectl -n keysight-wap get ingress -l app.kubernetes.io/name=wap-ui -o jsonpath='{.items[0].metadata.name}')
+	kubectl -n keysight-wap patch ingress "$WAPUI_INGRESS" --type=json -p='[{"op":"replace","path":"/spec/rules/0/http/paths/0/path","value":"/cyperf"},{"op":"add","path":"/metadata/annotations/nginx.ingress.kubernetes.io~1app-root","value":"/cyperf/"}]'
 	kubectl -n keysight-wap set image deployment/wapui wap-ui=docker-virtual-wap.artifactorylbj.it.keysight.com/wap-ui:$ORIGINAL_UI_VERSION
 	kubectl -n keysight-wap rollout restart deployment  wapui
 	kubectl -n keysight-wap wait --for=condition=available deployments/wapui --timeout 120s
