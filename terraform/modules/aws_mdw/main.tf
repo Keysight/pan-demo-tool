@@ -25,7 +25,7 @@ data "aws_ami" "mdw_ami" {
     }
     filter {
       name   = "name"
-      values = ["*1-0-16094*"]
+      values = ["*1-0-17211*"]
     }
 }
 
