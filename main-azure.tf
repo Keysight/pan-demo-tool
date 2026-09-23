@@ -104,7 +104,10 @@ resource "azurerm_subnet" "management_subnet" {
   resource_group_name  = azurerm_resource_group.cyperfazuretest-rg.name
   virtual_network_name = azurerm_virtual_network.main_vnet.name
   address_prefixes     = [var.azure_mgmt_cidr]
-  service_endpoints    = ["Microsoft.Storage"]
+
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
 }
 
 resource "azurerm_subnet" "azure_agent_mgmt_subnet" {
@@ -154,7 +157,10 @@ resource "azurerm_subnet" "mgmt_firewall_subnet" {
   resource_group_name  = azurerm_resource_group.cyperfazuretest-rg.name
   virtual_network_name = azurerm_virtual_network.main_vnet.name
   address_prefixes     = [var.azure_mgmt_firewall_cidr]
-  service_endpoints    = ["Microsoft.Storage"]
+
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
 }
 
 ####### Route Tables #######
@@ -619,28 +625,28 @@ resource "azurerm_storage_share" "pan_config_storage_share" {
 }
 
 resource "azurerm_storage_share_directory" "pan_config_directory" {
-  name             = "config"
-  storage_share_id = azurerm_storage_share.pan_config_storage_share.url
+  name              = "config"
+  storage_share_url  = azurerm_storage_share.pan_config_storage_share.url
 }
 
 resource "azurerm_storage_share_directory" "pan_config_directory1" {
-  name             = "content"
-  storage_share_id = azurerm_storage_share.pan_config_storage_share.url
+  name              = "content"
+  storage_share_url  = azurerm_storage_share.pan_config_storage_share.url
 }
 
 resource "azurerm_storage_share_directory" "pan_config_directory2" {
-  name             = "license"
-  storage_share_id = azurerm_storage_share.pan_config_storage_share.url
+  name              = "license"
+  storage_share_url  = azurerm_storage_share.pan_config_storage_share.url
 }
 
 resource "azurerm_storage_share_directory" "pan_config_directory3" {
-  name             = "software"
-  storage_share_id = azurerm_storage_share.pan_config_storage_share.url
+  name              = "software"
+  storage_share_url  = azurerm_storage_share.pan_config_storage_share.url
 }
 
 resource "azurerm_storage_share_file" "pan_config_file" {
   name             = "config/bootstrap.xml"
-  storage_share_id = azurerm_storage_share.pan_config_storage_share.url
+  storage_share_url = azurerm_storage_share.pan_config_storage_share.url
   source           = "pan_config/bootstrap.xml"
 
   depends_on = [
@@ -650,7 +656,7 @@ resource "azurerm_storage_share_file" "pan_config_file" {
 
 resource "azurerm_storage_share_file" "pan_config_file1" {
   name             = "config/init-cfg.txt"
-  storage_share_id = azurerm_storage_share.pan_config_storage_share.url
+  storage_share_url = azurerm_storage_share.pan_config_storage_share.url
   source           = "pan_config/init-cfg.txt"
 
   depends_on = [
